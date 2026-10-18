@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Android 12+ (API 31+).
+    Cloud backup is off for everything: photos and the item database must never
+    leave the phone through Google Drive. Device-to-device transfer (cable or
+    Wi-Fi Direct when setting up a new phone) is kept, so a user's stash moves
+    with them to their next phone without touching any server.
+-->
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude domain="root" path="." />
+        <exclude domain="file" path="." />
+        <exclude domain="database" path="." />
+        <exclude domain="sharedpref" path="." />
+        <exclude domain="external" path="." />
+    </cloud-backup>
+    <device-transfer>
+        <include domain="database" path="stash.db" />
+        <include domain="database" path="stash.db-wal" />
+        <include domain="database" path="stash.db-shm" />
+        <include domain="file" path="photos/" />
+    </device-transfer>
+</data-extraction-rules>

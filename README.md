@@ -2,7 +2,7 @@
 
 Snap a photo when you put something away. Months later, ask *"where's my passport?"* and get the answer: **Top drawer, blue box**.
 
-Everything stays on the phone. There's no account, no server, and no `INTERNET` permission.
+Everything stays on the phone. There's no account, no server, and no `INTERNET` permission. Android's Google Drive backup is switched off for the app's data too; only direct phone-to-phone transfer (Android 12+) can copy your stash to a new phone.
 
 ## How it works
 
