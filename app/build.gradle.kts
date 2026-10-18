@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.ksp)
+    alias(libs.plugins.room3)
 }
 
 android {
@@ -35,8 +36,11 @@ android {
     }
 }
 
-ksp {
-    arg("room.generateKotlin", "true")
+// Room writes a JSON snapshot of every schema version here. Commit these files:
+// they're what migrations are validated (and auto-migrations generated) against.
+// Room 3 always generates Kotlin, so the old room.generateKotlin KSP arg is gone.
+room3 {
+    schemaDirectory("$projectDir/schemas")
 }
 
 dependencies {

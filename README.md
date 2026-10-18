@@ -44,6 +44,7 @@ app/src/main/java/dev/stash/app/
 1. Open the folder in the latest stable Android Studio and let Gradle sync.
 2. Run on a device. The camera works on emulators, but Gemini Nano needs a supported phone (Pixel 9/10, Galaxy S24+ and others). On other devices the app automatically uses ML Kit labels.
 3. Run `./gradlew test` for the search unit tests.
+4. After any build, commit new files in `app/schemas/`. Room exports a JSON snapshot of each database version there, and migrations are checked against them.
 
 ### Notes and caveats
 - This code **hasn't been compiled yet**: the environment it was written in couldn't reach Google's Maven repository. Versions come from the official release pages as of 25 Sept 2026, and the code follows those libraries' documented APIs. Expect at most a few small fixes on first sync (most likely around the Room 3 builder or ML Kit GenAI beta signatures).
