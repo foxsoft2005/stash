@@ -2,6 +2,8 @@ package dev.stash.app.ai
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Matrix
+import android.media.ExifInterface
 import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -49,11 +51,47 @@ class SmartTagger(
             while (bounds.outWidth / (sample * 2) >= maxDim && bounds.outHeight / (sample * 2) >= maxDim) {
                 sample *= 2
             }
-            BitmapFactory.decodeFile(path, BitmapFactory.Options().apply { inSampleSize = sample })
+            val bitmap = BitmapFactory.decodeFile(path, BitmapFactory.Options().apply { inSampleSize = sample })
+                ?: return@withContext null
+            rotateUpright(bitmap, exifRotationDegrees(path))
         }
+
+    /**
+     * CameraX saves JPEGs in sensor orientation plus an EXIF "rotate me" flag, and
+     * BitmapFactory ignores that flag. Without this the AI often sees the photo
+     * sideways, which noticeably hurts ML Kit labels. (Coil already honors EXIF,
+     * which is why the photos look right on screen.)
+     */
+    private fun exifRotationDegrees(path: String): Int =
+        runCatching {
+            exifOrientationToDegrees(
+                ExifInterface(path).getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL),
+            )
+        }.getOrDefault(0)
+
+    private fun rotateUpright(bitmap: Bitmap, degrees: Int): Bitmap {
+        if (degrees == 0) return bitmap
+        val matrix = Matrix().apply { postRotate(degrees.toFloat()) }
+        val rotated = Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
+        if (rotated !== bitmap) bitmap.recycle()
+        return rotated
+    }
 
     private companion object {
         const val TAG = "SmartTagger"
         const val NANO_TIMEOUT_MS = 10_000L
     }
+}
+
+/**
+ * EXIF orientation → clockwise degrees to turn the image upright.
+ * Mirrored variants (TRANSPOSE/TRANSVERSE, FLIP_*) only get their rotation:
+ * the back camera never mirrors, and a mirror image doesn't change what the
+ * object *is*, which is all the tagger cares about.
+ */
+internal fun exifOrientationToDegrees(orientation: Int): Int = when (orientation) {
+    ExifInterface.ORIENTATION_ROTATE_90, ExifInterface.ORIENTATION_TRANSPOSE -> 90
+    ExifInterface.ORIENTATION_ROTATE_180, ExifInterface.ORIENTATION_FLIP_VERTICAL -> 180
+    ExifInterface.ORIENTATION_ROTATE_270, ExifInterface.ORIENTATION_TRANSVERSE -> 270
+    else -> 0
 }
