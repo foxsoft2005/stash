@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Stash</string>
+    <string name="shortcut_capture_short">Stash it</string>
+    <string name="shortcut_capture_long">Stash something</string>
+</resources>

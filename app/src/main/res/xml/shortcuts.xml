@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:shortcutId="capture"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_camera"
+        android:shortcutShortLabel="@string/shortcut_capture_short"
+        android:shortcutLongLabel="@string/shortcut_capture_long">
+        <intent
+            android:action="dev.stash.app.action.CAPTURE"
+            android:targetPackage="dev.stash.app"
+            android:targetClass="dev.stash.app.MainActivity" />
+    </shortcut>
+</shortcuts>
