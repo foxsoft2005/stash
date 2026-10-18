@@ -14,10 +14,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.input.TextFieldLineLimits
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.AutoAwesome
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Delete
@@ -45,6 +47,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
@@ -141,8 +144,8 @@ fun EditItemScreen(
                 }
             }
 
+            Text("Search keywords", style = MaterialTheme.typography.labelLarge)
             if (viewModel.tags.isNotEmpty()) {
-                Text("Search keywords", style = MaterialTheme.typography.labelLarge)
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     viewModel.tags.forEach { tag ->
                         InputChip(
@@ -154,6 +157,25 @@ fun EditItemScreen(
                     }
                 }
             }
+
+            // Your own words for it: the AI can't know you call the passport case "travel wallet".
+            OutlinedTextField(
+                state = viewModel.newTag,
+                label = { Text("Add a keyword") },
+                placeholder = { Text("e.g. travel wallet") },
+                lineLimits = TextFieldLineLimits.SingleLine,
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                // Keep the keyboard open so several keywords can be added in a row.
+                onKeyboardAction = { viewModel.addTag() },
+                trailingIcon = {
+                    if (viewModel.newTag.text.isNotBlank()) {
+                        IconButton(onClick = viewModel::addTag) {
+                            Icon(Icons.Rounded.Add, contentDescription = "Add keyword")
+                        }
+                    }
+                },
+                modifier = Modifier.fillMaxWidth(),
+            )
 
             Row(verticalAlignment = Alignment.CenterVertically) {
                 OutlinedTextField(
