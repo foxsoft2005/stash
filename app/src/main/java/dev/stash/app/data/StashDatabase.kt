@@ -9,11 +9,12 @@ import kotlinx.coroutines.Dispatchers
 
 /**
  * Schema changes: bump [version] and add a migration, e.g.
- * `autoMigrations = [AutoMigration(from = 1, to = 2)]` for simple column additions.
+ * `autoMigrations = [AutoMigration(from = 2, to = 3)]` for simple column additions,
+ * or a manual one in Migrations.kt when stored data has to change.
  * Never ship a schema change without one, or existing users lose their stash.
  * Exported schemas live in app/schemas/ and must be committed.
  */
-@Database(entities = [Item::class], version = 1, exportSchema = true)
+@Database(entities = [Item::class], version = 2, exportSchema = true)
 abstract class StashDatabase : RoomDatabase() {
 
     abstract fun itemDao(): ItemDao
@@ -27,6 +28,7 @@ abstract class StashDatabase : RoomDatabase() {
                 // Bundled SQLite: same, recent SQLite version on every device.
                 .setDriver(BundledSQLiteDriver())
                 .setQueryCoroutineContext(Dispatchers.IO)
+                .addMigrations(*ALL_MIGRATIONS)
                 .build()
     }
 }

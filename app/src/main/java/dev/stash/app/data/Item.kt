@@ -6,7 +6,8 @@ import androidx.room3.PrimaryKey
 /**
  * One stored thing: a photo, what it is, and where it went.
  *
- * [tags] is a space-separated, lowercase keyword list (AI-suggested + user-edited).
+ * [tags] is a comma-separated, normalized keyword list (AI-suggested + user-edited);
+ * always read and write it through [Tags] / [tagList].
  * [lentTo] is non-null when the item is currently lent out to someone.
  */
 @Entity(tableName = "items")
@@ -22,5 +23,5 @@ data class Item(
     val updatedAt: Long = System.currentTimeMillis(),
 ) {
     val isLent: Boolean get() = !lentTo.isNullOrBlank()
-    val tagList: List<String> get() = tags.split(' ').filter { it.isNotBlank() }
+    val tagList: List<String> get() = Tags.split(tags)
 }

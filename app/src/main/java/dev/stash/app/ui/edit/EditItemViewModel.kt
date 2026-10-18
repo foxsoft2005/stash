@@ -12,6 +12,7 @@ import dev.stash.app.ai.TagSource
 import dev.stash.app.data.Item
 import dev.stash.app.data.ItemRepository
 import dev.stash.app.data.PhotoStore
+import dev.stash.app.data.Tags
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -89,7 +90,7 @@ class EditItemViewModel(
         }
         // Don't overwrite anything the user typed while we were thinking.
         if (name.text.isBlank()) name.setTextAndPlaceCursorAtEnd(suggestion.name)
-        tags = (tags + suggestion.tags).distinct()
+        tags = Tags.clean(tags + suggestion.tags)
         aiState = AiState.Suggested(suggestion.source)
     }
 
@@ -116,7 +117,7 @@ class EditItemViewModel(
                     place = place.text.toString().trim(),
                     lentTo = lentTo.text.toString().trim().ifBlank { null },
                     note = note.text.toString().trim(),
-                    tags = tags.joinToString(" "),
+                    tags = Tags.join(tags),
                 ),
             )
             saved = true
