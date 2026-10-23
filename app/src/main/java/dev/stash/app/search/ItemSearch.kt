@@ -60,14 +60,38 @@ object ItemSearch {
     }
 
     /**
-     * Exact match, or the words differ only by a short ending:
-     * key/keys, passport/passports, ключ/ключи, паспорт/паспорта — but not pen/pencil.
+     * Exact match, or the same stem (3+ letters) with grammatical endings only:
+     * key/keys, box/boxes, battery/batteries, ключ/ключи, сумка/сумку, тетрадь/тетради.
+     *
+     * Anything else after the stem is a different word: car/card, part/party,
+     * box/boxer, pen/pencil. (The old rule allowed any 1-2 extra letters, so
+     * "car" found the "card" and "box" found the "boxer shorts".)
      */
     internal fun matches(a: String, b: String): Boolean {
         if (a == b) return true
-        val shorter = minOf(a.length, b.length)
-        val longer = maxOf(a.length, b.length)
         val common = a.commonPrefixWith(b).length
-        return common >= 3 && common >= shorter - 1 && longer - common <= 2
+        if (common < MIN_STEM) return false
+        // The shared prefix can swallow the first letter of an ending (мама/мамам,
+        // stem "мам" + а/ам), so also try a stem one or two letters shorter.
+        for (stem in common downTo maxOf(MIN_STEM, common - 2)) {
+            if (isEndingPair(a.substring(stem), b.substring(stem))) return true
+        }
+        return false
     }
+
+    private const val MIN_STEM = 3
+
+    private val englishEndings = setOf("", "s", "es")
+
+    private val russianEndings = setOf(
+        "", "а", "я", "у", "ю", "ы", "и", "е", "о", "ь", "й",
+        "ом", "ем", "ой", "ей", "ам", "ям", "ах", "ях", "ов", "ев", "ёв",
+        "ами", "ями",
+    )
+
+    private fun isEndingPair(x: String, y: String): Boolean =
+        (x in englishEndings && y in englishEndings) ||
+            (x in russianEndings && y in russianEndings) ||
+            // battery/batteries, box/boxes are covered above
+            (x == "y" && y == "ies") || (x == "ies" && y == "y")
 }

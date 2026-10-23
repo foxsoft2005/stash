@@ -38,6 +38,37 @@ class ItemSearchTest {
         assertTrue(ItemSearch.matches("ключ", "ключи"))
     }
 
+    @Test fun `different words sharing a prefix do not match`() {
+        assertFalse(ItemSearch.matches("car", "card"))
+        assertFalse(ItemSearch.matches("part", "party"))
+        assertFalse(ItemSearch.matches("box", "boxer"))
+        assertFalse(ItemSearch.matches("boxes", "boxer"))
+        assertFalse(ItemSearch.matches("cart", "card"))
+        assertFalse(ItemSearch.matches("id", "ids")) // stems shorter than 3 letters only match exactly
+    }
+
+    @Test fun `english plurals match`() {
+        assertTrue(ItemSearch.matches("box", "boxes"))
+        assertTrue(ItemSearch.matches("glasses", "glass"))
+        assertTrue(ItemSearch.matches("battery", "batteries"))
+        assertTrue(ItemSearch.matches("documents", "document"))
+    }
+
+    @Test fun `russian case endings match`() {
+        assertTrue(ItemSearch.matches("сумка", "сумку"))
+        assertTrue(ItemSearch.matches("тетрадь", "тетради"))
+        assertTrue(ItemSearch.matches("очки", "очков"))
+        assertTrue(ItemSearch.matches("ключом", "ключей"))
+        assertTrue(ItemSearch.matches("мама", "мамам"))
+        assertFalse(ItemSearch.matches("кот", "котлета"))
+    }
+
+    @Test fun `card is not the answer to where is my car`() {
+        val card = Item(id = 5, name = "Gift card", place = "Wallet")
+        val car = Item(id = 6, name = "Car keys", place = "Hallway hook")
+        assertEquals(listOf(car), ItemSearch.search("where are my car keys", listOf(card, car)))
+    }
+
     @Test fun `words inside a multi-word tag are searchable`() {
         assertEquals(drill, ItemSearch.search("power", all).first())
         assertEquals(drill, ItemSearch.search("tools", all).first())
