@@ -12,11 +12,13 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ViewModel
 import dev.stash.app.data.PhotoStore
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withContext
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
@@ -52,11 +54,11 @@ class CaptureViewModel(private val photos: PhotoStore) : ViewModel() {
         }
     }
 
-    /** Returns the saved photo path. */
+    /** Returns the saved photo path. On failure or cancellation, no file is left behind. */
     suspend fun takePhoto(context: Context): String {
         _isCapturing.value = true
+        val file = photos.newPhotoFile()
         try {
-            val file = photos.newPhotoFile()
             val options = ImageCapture.OutputFileOptions.Builder(file).build()
             suspendCancellableCoroutine<Unit> { cont ->
                 imageCapture.takePicture(
@@ -69,6 +71,10 @@ class CaptureViewModel(private val photos: PhotoStore) : ViewModel() {
                 )
             }
             return file.absolutePath
+        } catch (e: Throwable) {
+            // NonCancellable: this must run even when we got here *because* of cancellation.
+            withContext(NonCancellable) { photos.delete(file.absolutePath) }
+            throw e
         } finally {
             _isCapturing.value = false
         }

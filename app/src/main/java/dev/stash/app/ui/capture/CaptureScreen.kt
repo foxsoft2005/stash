@@ -1,7 +1,15 @@
 package dev.stash.app.ui.capture
 
 import android.Manifest
+import android.app.Activity
+import android.content.ActivityNotFoundException
+import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
+import android.provider.Settings
+import android.util.Log
+import androidx.activity.compose.LocalActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.compose.CameraXViewfinder
@@ -32,6 +40,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -39,9 +48,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.launch
+import kotlin.coroutines.cancellation.CancellationException
 
 @Composable
 fun CaptureScreen(
@@ -50,18 +62,27 @@ fun CaptureScreen(
     onClose: () -> Unit,
 ) {
     val context = LocalContext.current
-    var hasPermission by remember {
-        mutableStateOf(
-            ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) ==
-                PackageManager.PERMISSION_GRANTED,
-        )
-    }
+    val activity = LocalActivity.current
+    var hasPermission by remember { mutableStateOf(context.hasCameraPermission()) }
+    // After "Don't allow" twice (or "don't ask again"), Android stops showing the
+    // dialog and launch() just returns false, so the only way back is Settings.
+    var permanentlyDenied by rememberSaveable { mutableStateOf(false) }
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission(),
-    ) { granted -> hasPermission = granted }
+    ) { granted ->
+        hasPermission = granted
+        permanentlyDenied = !granted &&
+            activity?.shouldShowRequestPermissionRationale(Manifest.permission.CAMERA) == false
+    }
 
     LaunchedEffect(Unit) {
         if (!hasPermission) permissionLauncher.launch(Manifest.permission.CAMERA)
+    }
+
+    // Coming back from Settings: pick up a permission that was granted there.
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
+        hasPermission = context.hasCameraPermission()
+        if (hasPermission) permanentlyDenied = false
     }
 
     Surface(color = Color.Black, contentColor = Color.White, modifier = Modifier.fillMaxSize()) {
@@ -73,10 +94,24 @@ fun CaptureScreen(
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                Text("Stash needs the camera to photograph where you put things. Photos stay on this phone.")
+                Text(
+                    if (permanentlyDenied) {
+                        "Camera access is turned off for Stash. Turn it on in Settings › Permissions › Camera. Photos stay on this phone."
+                    } else {
+                        "Stash needs the camera to photograph where you put things. Photos stay on this phone."
+                    },
+                )
                 Spacer(Modifier.size(16.dp))
-                Button(onClick = { permissionLauncher.launch(Manifest.permission.CAMERA) }) {
-                    Text("Allow camera")
+                Button(
+                    onClick = {
+                        if (permanentlyDenied) {
+                            openAppSettings(activity ?: context)
+                        } else {
+                            permissionLauncher.launch(Manifest.permission.CAMERA)
+                        }
+                    },
+                ) {
+                    Text(if (permanentlyDenied) "Open settings" else "Allow camera")
                 }
             }
         }
@@ -125,9 +160,17 @@ private fun Viewfinder(viewModel: CaptureViewModel, onPhotoTaken: (String) -> Un
                 busy = isCapturing,
                 onClick = {
                     scope.launch {
-                        runCatching { viewModel.takePhoto(context) }
-                            .onSuccess(onPhotoTaken)
-                            .onFailure { error = "Couldn't take the photo. Try again." }
+                        val path = try {
+                            viewModel.takePhoto(context)
+                        } catch (e: CancellationException) {
+                            throw e // screen closed mid-capture: nothing to show
+                        } catch (e: Exception) {
+                            Log.w("CaptureScreen", "Photo capture failed", e)
+                            error = "Couldn't take the photo. Try again."
+                            return@launch
+                        }
+                        error = null
+                        onPhotoTaken(path)
                     }
                 },
             )
@@ -154,5 +197,21 @@ private fun ShutterButton(busy: Boolean, onClick: () -> Unit) {
                 modifier = Modifier.fillMaxSize(),
             ) {}
         }
+    }
+}
+
+private fun Context.hasCameraPermission(): Boolean =
+    ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
+
+/** Opens Stash's page in system Settings, where Permissions › Camera can be switched back on. */
+private fun openAppSettings(context: Context) {
+    val details = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.fromParts("package", context.packageName, null))
+    // Outside an Activity (shouldn't happen here) startActivity needs its own task.
+    if (context !is Activity) details.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    try {
+        context.startActivity(details)
+    } catch (e: ActivityNotFoundException) {
+        // A few heavily customized ROMs lack the per-app page; the main Settings screen is the best we can do.
+        context.startActivity(Intent(Settings.ACTION_SETTINGS).apply { if (context !is Activity) addFlags(Intent.FLAG_ACTIVITY_NEW_TASK) })
     }
 }

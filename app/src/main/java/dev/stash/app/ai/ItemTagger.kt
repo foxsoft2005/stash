@@ -8,6 +8,7 @@ import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
+import kotlin.coroutines.cancellation.CancellationException
 
 enum class TagSource { GEMINI_NANO, MLKIT_LABELS }
 
@@ -32,16 +33,26 @@ class SmartTagger(
     /** Call once at startup: checks Gemini Nano and starts its download if needed. */
     suspend fun prepare() = nano.prepare()
 
+    /**
+     * Gemini Nano first (null on timeout, error or no Nano), then ML Kit labels.
+     * Cancellation (the user left the screen) is always rethrown: catching it
+     * would keep running the fallback model for a screen that no longer exists.
+     */
     suspend fun suggest(photoPath: String): TagSuggestion? {
         val bitmap = decodeSampled(photoPath, maxDim = 768) ?: return null
-        return try {
-            withTimeoutOrNull(NANO_TIMEOUT_MS) { nano.suggest(bitmap) }
-                ?: labels.suggest(bitmap)
-        } catch (e: Exception) {
-            Log.w(TAG, "Tagging failed", e)
-            runCatching { labels.suggest(bitmap) }.getOrNull()
-        }
+        return attempt("Gemini Nano") { withTimeoutOrNull(NANO_TIMEOUT_MS) { nano.suggest(bitmap) } }
+            ?: attempt("ML Kit labels") { labels.suggest(bitmap) }
     }
+
+    private suspend fun attempt(what: String, block: suspend () -> TagSuggestion?): TagSuggestion? =
+        try {
+            block()
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Log.w(TAG, "$what tagging failed", e)
+            null
+        }
 
     private suspend fun decodeSampled(path: String, maxDim: Int): Bitmap? =
         withContext(Dispatchers.IO) {
