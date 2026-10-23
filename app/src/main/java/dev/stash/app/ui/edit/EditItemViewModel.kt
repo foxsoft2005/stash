@@ -1,6 +1,7 @@
 package dev.stash.app.ui.edit
 
 import androidx.compose.foundation.text.input.TextFieldState
+import androidx.compose.foundation.text.input.clearText
 import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -43,6 +44,9 @@ class EditItemViewModel(
     val place = TextFieldState()
     val lentTo = TextFieldState()
     val note = TextFieldState()
+
+    /** The "Add a keyword" field; its text becomes a tag on Enter/+ or on Save. */
+    val newTag = TextFieldState()
 
     var tags by mutableStateOf(emptyList<String>())
         private set
@@ -100,11 +104,24 @@ class EditItemViewModel(
         tags = tags - tag
     }
 
+    /**
+     * Adds whatever is in [newTag]. Commas split it into several keywords, so
+     * "passport, travel" adds two, while "power tool" stays one.
+     */
+    fun addTag() {
+        val typed = newTag.text.toString()
+        if (typed.isBlank()) return
+        tags = Tags.clean(tags + typed.split(Tags.SEPARATOR))
+        newTag.clearText()
+    }
+
     fun markReturned() = lentTo.setTextAndPlaceCursorAtEnd("")
 
     val canSave: Boolean get() = name.text.isNotBlank() && place.text.isNotBlank()
 
     fun save(onSaved: () -> Unit) {
+        // A keyword typed but not yet added would otherwise be silently lost.
+        addTag()
         if (!canSave) {
             showErrors = true
             return

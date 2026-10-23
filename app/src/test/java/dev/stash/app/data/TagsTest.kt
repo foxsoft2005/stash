@@ -25,6 +25,15 @@ class TagsTest {
         assertEquals(emptyList<String>(), Tags.split(""))
     }
 
+    @Test fun `typed keywords split on commas only`() {
+        // What EditItemViewModel.addTag() does with the "Add a keyword" field.
+        val existing = listOf("passport")
+        assertEquals(
+            listOf("passport", "travel wallet", "id"),
+            Tags.clean(existing + " Travel Wallet, id ,passport".split(Tags.SEPARATOR)),
+        )
+    }
+
     @Test fun `v1 migration keeps every old single-word tag`() {
         // Mirrors MIGRATION_1_2_SQL: REPLACE(TRIM(tags), ' ', ',')
         val v1 = " document  travel id "
