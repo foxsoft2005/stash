@@ -13,11 +13,11 @@ plugins {
 val releaseKeystore = providers.environmentVariable("STASH_KEYSTORE_PATH").orNull
 
 android {
-    namespace = "dev.stash.app"
+    namespace = "io.github.foxsoft2005.stash"
     compileSdk = 37
 
     defaultConfig {
-        applicationId = "dev.stash.app"
+        applicationId = "io.github.foxsoft2005.stash"
         minSdk = 26          // ML Kit GenAI Prompt API requires API 26+
         targetSdk = 37
         // Set from the git tag by the release workflow (v1.2.3 -> "1.2.3", 1002003).

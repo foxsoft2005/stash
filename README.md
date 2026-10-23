@@ -38,7 +38,7 @@ Download the latest `stash-x.y.z.apk` from [**Releases**](https://github.com/fox
 ## Project layout
 
 ```
-app/src/main/java/dev/stash/app/
+app/src/main/java/io/github/foxsoft2005/stash/
 ├── StashApp.kt              Application + tiny manual DI container
 ├── MainActivity.kt          edge-to-edge, handles the capture shortcut
 ├── data/                    Room 3 entity/DAO/DB, repository, private photo store
