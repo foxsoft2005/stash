@@ -8,9 +8,9 @@ import org.junit.Test
 
 class ItemSearchTest {
 
-    private val passport = Item(id = 1, name = "Passport", place = "Top drawer, blue box", tags = "document travel id")
-    private val drill = Item(id = 2, name = "Drill", place = "Garage shelf", tags = "tool power", lentTo = "Mark")
-    private val keys = Item(id = 3, name = "Spare keys", place = "Kitchen jar", tags = "key house")
+    private val passport = Item(id = 1, name = "Passport", place = "Top drawer, blue box", tags = "document,travel,id")
+    private val drill = Item(id = 2, name = "Drill", place = "Garage shelf", tags = "power tool", lentTo = "Mark")
+    private val keys = Item(id = 3, name = "Spare keys", place = "Kitchen jar", tags = "key,house")
     private val pencil = Item(id = 4, name = "Pencil case", place = "Desk", tags = "stationery")
     private val all = listOf(passport, drill, keys, pencil)
 
@@ -36,6 +36,11 @@ class ItemSearchTest {
     @Test fun `short prefixes do not over-match`() {
         assertFalse(ItemSearch.matches("pen", "pencil"))
         assertTrue(ItemSearch.matches("ключ", "ключи"))
+    }
+
+    @Test fun `words inside a multi-word tag are searchable`() {
+        assertEquals(drill, ItemSearch.search("power", all).first())
+        assertEquals(drill, ItemSearch.search("tools", all).first())
     }
 
     @Test fun `only filler words returns nothing`() {
