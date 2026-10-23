@@ -1,6 +1,7 @@
 package dev.stash.app.data
 
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 
 class ItemRepository(
     private val dao: ItemDao,
@@ -8,7 +9,9 @@ class ItemRepository(
 ) {
     fun observeAll(): Flow<List<Item>> = dao.observeAll()
 
-    fun observeRecentPlaces(limit: Int = 8): Flow<List<String>> = dao.observeRecentPlaces(limit)
+    fun observeRecentPlaces(limit: Int = 8): Flow<List<String>> =
+        // Over-fetch so case-only duplicates ("Garage"/"garage") can't push real places out.
+        dao.observeRecentPlaces(limit * RECENT_PLACES_OVERFETCH).map { Places.recent(it, limit) }
 
     suspend fun get(id: Long): Item? = dao.get(id)
 
@@ -19,5 +22,9 @@ class ItemRepository(
     suspend fun delete(item: Item) {
         dao.delete(item.id)
         photos.delete(item.photoPath)
+    }
+
+    private companion object {
+        const val RECENT_PLACES_OVERFETCH = 5
     }
 }
