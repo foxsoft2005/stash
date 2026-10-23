@@ -83,6 +83,12 @@ Every pull request and push to `main` runs **Android CI** (`.github/workflows/an
 - **Rooms and containers** as a hierarchy (House › Bedroom › Wardrobe › Blue box).
 - **Semantic search** with on-device text embeddings, so "ID documents" finds "passport" even without matching tags.
 
+## Languages
+
+English and Russian. The app follows the phone's language; on Android 13+ you can also pick it per app (*Settings › Apps › Stash › Language*). Search understands questions in both languages either way.
+
+To add a language: copy `app/src/main/res/values/strings.xml` to `values-<code>/strings.xml`, translate it, and add the language to `TranslationsTest` with its plural forms. The test (and CI) fails on missing strings, mismatched placeholders or missing plural forms.
+
 ## Contributing
 
 Issues and pull requests are welcome. Every PR is built and tested by **Android CI**; please make sure its check is green. Dependency updates arrive weekly as grouped Dependabot PRs.

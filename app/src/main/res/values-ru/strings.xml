@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Русский. Термины: item = «вещь», backup = «резервная копия» / «копия».
+    Обращение на «вы»; без глаголов прошедшего времени, требующих рода
+    (не «положил/положила»). Plurals: one (1, 21…), few (2–4, 22…),
+    many (5–20, 25…), other (дробные).
+-->
+<resources>
+    <!-- Ярлык при долгом нажатии на значок -->
+    <string name="shortcut_capture_short">Запомнить</string>
+    <string name="shortcut_capture_long">Запомнить, где лежит</string>
+
+    <!-- Общее -->
+    <string name="action_cancel">Отмена</string>
+    <string name="action_delete">Удалить</string>
+    <string name="action_back">Назад</string>
+
+    <!-- Главный экран -->
+    <string name="home_capture">Запомнить</string>
+    <string name="home_search_placeholder">Где лежит…?</string>
+    <string name="home_clear_search">Очистить поиск</string>
+    <string name="home_filter_all">Все %1$d</string>
+    <string name="home_filter_lent">Одолжено %1$d</string>
+    <string name="home_no_match_title">По запросу «%1$s» ничего не найдено</string>
+    <string name="home_no_match_body">Возможно, эту вещь ещё не добавили.</string>
+    <string name="home_lent_to">Одолжено: %1$s</string>
+    <string name="home_last_stored_in">Лежало здесь: %1$s</string>
+    <string name="home_empty_title">Пока ничего нет</string>
+    <string name="home_empty_body">Сфотографируйте вещь, когда убираете её. Через несколько месяцев просто спросите: «где мой паспорт?»</string>
+
+    <!-- Камера -->
+    <string name="capture_permission_rationale">Приложению Stash нужна камера, чтобы фотографировать, куда вы убираете вещи. Фото остаются на этом телефоне.</string>
+    <string name="capture_permission_denied">Доступ к камере для Stash отключён. Включите его в Настройках › Разрешения › Камера. Фото остаются на этом телефоне.</string>
+    <string name="capture_allow_camera">Разрешить доступ к камере</string>
+    <string name="capture_open_settings">Открыть настройки</string>
+    <string name="capture_close">Закрыть камеру</string>
+    <string name="capture_failed">Не удалось сделать фото. Попробуйте ещё раз.</string>
+
+    <!-- Новая вещь / редактирование -->
+    <string name="edit_title_new">Новая вещь</string>
+    <string name="edit_title_existing">Вещь</string>
+    <string name="edit_save">Сохранить</string>
+    <string name="edit_name_label">Что это?</string>
+    <string name="edit_place_label">Куда вы это убрали?</string>
+    <string name="edit_place_placeholder">Верхний ящик, синяя коробка</string>
+    <string name="edit_keywords_title">Слова для поиска</string>
+    <string name="edit_remove_keyword">Убрать «%1$s»</string>
+    <string name="edit_add_keyword_label">Добавить слово</string>
+    <string name="edit_add_keyword_placeholder">например, дорожный кошелёк</string>
+    <string name="edit_add_keyword">Добавить слово</string>
+    <string name="edit_lent_to_label">Кому одолжили (необязательно)</string>
+    <string name="edit_returned">Вернули</string>
+    <string name="edit_note_label">Заметка (необязательно)</string>
+    <string name="edit_delete_title">Удалить эту вещь?</string>
+    <string name="edit_delete_body">Фото и место хранения будут удалены с этого телефона.</string>
+
+    <!-- ИИ на устройстве -->
+    <string name="ai_thinking">Распознаём на устройстве…</string>
+    <string name="ai_suggested_nano">Предложено Gemini Nano на этом телефоне</string>
+    <string name="ai_suggested_labels">Предложено встроенным распознаванием изображений</string>
+    <string name="ai_no_idea">Не удалось распознать. Просто напишите, что это.</string>
+    <string name="ai_nano_downloading">Gemini Nano загружается. Когда загрузка завершится, подсказки станут точнее.</string>
+    <string name="ai_nano_offer">Улучшить подсказки с помощью Gemini Nano</string>
+    <string name="ai_nano_prompt_title">Более точные подсказки?</string>
+    <string name="ai_nano_prompt_body">Stash может использовать Gemini Nano — ИИ от Google, который работает прямо на устройстве, — чтобы определять, что на фото, и подбирать более удачные слова для поиска. Всё происходит только на этом телефоне: ничего никуда не отправляется.\n\nЭто большая разовая загрузка, её выполняет сам Android. Лучше подключиться к Wi-Fi.\n\nБез неё Stash использует более простое встроенное распознавание изображений.</string>
+    <string name="ai_nano_prompt_download">Загрузить</string>
+    <string name="ai_nano_prompt_decline">Нет, спасибо</string>
+
+    <!-- Резервная копия: меню и диалоги -->
+    <string name="backup_more_options">Другие действия</string>
+    <string name="backup_menu_back_up">Резервная копия…</string>
+    <string name="backup_menu_restore">Восстановить…</string>
+    <string name="backup_export_title">Резервная копия</string>
+    <string name="backup_export_body">Все вещи и фото сохраняются в один зашифрованный файл. Придумайте для него пароль: он понадобится при восстановлении, а забытый пароль восстановить нельзя.</string>
+    <string name="backup_password">Пароль</string>
+    <string name="backup_repeat_password">Повторите пароль</string>
+    <string name="backup_choose_location">Выбрать, куда сохранить</string>
+    <string name="backup_restore_title">Восстановление из копии</string>
+    <string name="backup_restore_body">Вещи из копии будут добавлены на этот телефон. То, что здесь уже есть, не изменится и не удалится.</string>
+    <string name="backup_restore_password">Пароль копии</string>
+    <string name="backup_restore_action">Восстановить</string>
+    <string name="backup_working_export">Создаём копию…</string>
+    <string name="backup_working_restore">Восстанавливаем…</string>
+    <string name="backup_keep_open">Не закрывайте Stash, пока процесс не завершится.</string>
+
+    <!-- Резервная копия: проверка пароля -->
+    <plurals name="backup_password_too_short">
+        <item quantity="one">Пароль должен быть не короче %d символа.</item>
+        <item quantity="few">Пароль должен быть не короче %d символов.</item>
+        <item quantity="many">Пароль должен быть не короче %d символов.</item>
+        <item quantity="other">Пароль должен быть не короче %d символа.</item>
+    </plurals>
+    <string name="backup_password_mismatch">Пароли не совпадают.</string>
+
+    <!-- Резервная копия: результаты -->
+    <plurals name="backup_done">
+        <item quantity="one">Копия сохранена: %d вещь. Храните файл и пароль в надёжном месте: без пароля файл не открыть.</item>
+        <item quantity="few">Копия сохранена: %d вещи. Храните файл и пароль в надёжном месте: без пароля файл не открыть.</item>
+        <item quantity="many">Копия сохранена: %d вещей. Храните файл и пароль в надёжном месте: без пароля файл не открыть.</item>
+        <item quantity="other">Копия сохранена: %d вещи. Храните файл и пароль в надёжном месте: без пароля файл не открыть.</item>
+    </plurals>
+    <string name="backup_start_again">Пожалуйста, начните создание копии заново.</string>
+    <plurals name="restore_added">
+        <item quantity="one">Восстановлена %d вещь.</item>
+        <item quantity="few">Восстановлены %d вещи.</item>
+        <item quantity="many">Восстановлено %d вещей.</item>
+        <item quantity="other">Восстановлено %d вещи.</item>
+    </plurals>
+    <plurals name="restore_skipped">
+        <item quantity="one">%d вещь уже была на телефоне и пропущена.</item>
+        <item quantity="few">%d вещи уже были на телефоне и пропущены.</item>
+        <item quantity="many">%d вещей уже были на телефоне и пропущены.</item>
+        <item quantity="other">%d вещи уже были на телефоне и пропущены.</item>
+    </plurals>
+    <string name="restore_nothing_new">Ничего нового: всё из этой копии уже есть на телефоне.</string>
+    <string name="restore_empty">Эта копия пустая.</string>
+
+    <!-- Резервная копия: ошибки -->
+    <string name="backup_error_not_a_backup">Этот файл не является резервной копией Stash.</string>
+    <string name="backup_error_wrong_password">Неверный пароль, или файл повреждён.</string>
+    <string name="backup_error_damaged">Копия повреждена, восстановить её нельзя. Ничего не изменилось.</string>
+    <string name="backup_error_newer_version">Эта копия создана более новой версией Stash. Обновите приложение и попробуйте снова.</string>
+    <string name="backup_error_read">Не удалось прочитать файл.</string>
+    <string name="backup_error_write">Не удалось сохранить копию в это место. Выберите другое.</string>
+    <string name="restore_failed">Не удалось восстановить копию. Ничего не изменилось.</string>
+    <string name="backup_failed">Не удалось создать копию.</string>
+
+    <!-- Напоминание о копии -->
+    <string name="reminder_first_title">Сделайте резервную копию</string>
+    <string name="reminder_first_body">Всё, что вы сохранили, есть только на этом телефоне. Зашифрованная копия сбережёт данные, если телефон потеряется, сломается или вы его смените.</string>
+    <string name="reminder_stale_title">Пора сделать копию</string>
+    <plurals name="reminder_stale_days">
+        <item quantity="one">Последняя копия сделана %d день назад.</item>
+        <item quantity="few">Последняя копия сделана %d дня назад.</item>
+        <item quantity="many">Последняя копия сделана %d дней назад.</item>
+        <item quantity="other">Последняя копия сделана %d дня назад.</item>
+    </plurals>
+    <plurals name="reminder_stale_changed">
+        <item quantity="one">С тех пор изменилась %d вещь.</item>
+        <item quantity="few">С тех пор изменились %d вещи.</item>
+        <item quantity="many">С тех пор изменилось %d вещей.</item>
+        <item quantity="other">С тех пор изменилось %d вещи.</item>
+    </plurals>
+    <string name="reminder_later">Позже</string>
+    <string name="reminder_back_up_now">Сделать копию</string>
+</resources>

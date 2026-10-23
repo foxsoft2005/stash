@@ -46,12 +46,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import io.github.foxsoft2005.stash.R
 import kotlinx.coroutines.launch
 import kotlin.coroutines.cancellation.CancellationException
 
@@ -95,11 +97,9 @@ fun CaptureScreen(
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Text(
-                    if (permanentlyDenied) {
-                        "Camera access is turned off for Stash. Turn it on in Settings › Permissions › Camera. Photos stay on this phone."
-                    } else {
-                        "Stash needs the camera to photograph where you put things. Photos stay on this phone."
-                    },
+                    stringResource(
+                        if (permanentlyDenied) R.string.capture_permission_denied else R.string.capture_permission_rationale,
+                    ),
                 )
                 Spacer(Modifier.size(16.dp))
                 Button(
@@ -111,7 +111,7 @@ fun CaptureScreen(
                         }
                     },
                 ) {
-                    Text(if (permanentlyDenied) "Open settings" else "Allow camera")
+                    Text(stringResource(if (permanentlyDenied) R.string.capture_open_settings else R.string.capture_allow_camera))
                 }
             }
         }
@@ -121,7 +121,7 @@ fun CaptureScreen(
                 onClick = onClose,
                 colors = IconButtonDefaults.filledIconButtonColors(containerColor = Color.Black.copy(alpha = 0.4f)),
             ) {
-                Icon(Icons.Rounded.Close, contentDescription = "Close camera", tint = Color.White)
+                Icon(Icons.Rounded.Close, contentDescription = stringResource(R.string.capture_close), tint = Color.White)
             }
         }
     }
@@ -134,7 +134,7 @@ private fun Viewfinder(viewModel: CaptureViewModel, onPhotoTaken: (String) -> Un
     val scope = rememberCoroutineScope()
     val surfaceRequest by viewModel.surfaceRequest.collectAsStateWithLifecycle()
     val isCapturing by viewModel.isCapturing.collectAsStateWithLifecycle()
-    var error by remember { mutableStateOf<String?>(null) }
+    var error by remember { mutableStateOf<Int?>(null) } // string resource, resolved when shown
 
     LaunchedEffect(lifecycleOwner) {
         viewModel.bindToCamera(context, lifecycleOwner)
@@ -153,7 +153,7 @@ private fun Viewfinder(viewModel: CaptureViewModel, onPhotoTaken: (String) -> Un
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             error?.let {
-                Text(it, color = MaterialTheme.colorScheme.error)
+                Text(stringResource(it), color = MaterialTheme.colorScheme.error)
                 Spacer(Modifier.size(12.dp))
             }
             ShutterButton(
@@ -166,7 +166,7 @@ private fun Viewfinder(viewModel: CaptureViewModel, onPhotoTaken: (String) -> Un
                             throw e // screen closed mid-capture: nothing to show
                         } catch (e: Exception) {
                             Log.w("CaptureScreen", "Photo capture failed", e)
-                            error = "Couldn't take the photo. Try again."
+                            error = R.string.capture_failed
                             return@launch
                         }
                         error = null

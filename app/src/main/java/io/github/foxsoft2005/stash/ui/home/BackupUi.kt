@@ -32,9 +32,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
+import io.github.foxsoft2005.stash.R
 import io.github.foxsoft2005.stash.data.backup.BackupReminder
+import io.github.foxsoft2005.stash.ui.asString
 
 /** ⋮ next to the search bar. */
 @Composable
@@ -42,16 +46,16 @@ fun BackupMenu(onBackUp: () -> Unit, onRestore: () -> Unit) {
     var open by remember { mutableStateOf(false) }
     Box {
         IconButton(onClick = { open = true }) {
-            Icon(Icons.Rounded.MoreVert, contentDescription = "More options")
+            Icon(Icons.Rounded.MoreVert, contentDescription = stringResource(R.string.backup_more_options))
         }
         DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
             DropdownMenuItem(
-                text = { Text("Back up…") },
+                text = { Text(stringResource(R.string.backup_menu_back_up)) },
                 leadingIcon = { Icon(Icons.Rounded.Backup, contentDescription = null) },
                 onClick = { open = false; onBackUp() },
             )
             DropdownMenuItem(
-                text = { Text("Restore…") },
+                text = { Text(stringResource(R.string.backup_menu_restore)) },
                 leadingIcon = { Icon(Icons.Rounded.SettingsBackupRestore, contentDescription = null) },
                 onClick = { open = false; onRestore() },
             )
@@ -68,23 +72,20 @@ fun BackupDialogs(viewModel: BackupViewModel, onChooseExportFile: (String) -> Un
         BackupDialog.ChooseExportPassword -> AlertDialog(
             onDismissRequest = viewModel::dismissDialog,
             icon = { Icon(Icons.Rounded.Backup, contentDescription = null) },
-            title = { Text("Back up your stash") },
+            title = { Text(stringResource(R.string.backup_export_title)) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Text(
-                        "All items and photos go into one encrypted file. Choose a password for it: " +
-                            "you'll need it to restore, and a forgotten password can't be recovered.",
-                    )
+                    Text(stringResource(R.string.backup_export_body))
                     OutlinedSecureTextField(
                         state = viewModel.password,
-                        label = { Text("Password") },
+                        label = { Text(stringResource(R.string.backup_password)) },
                         modifier = Modifier.fillMaxWidth(),
                     )
                     OutlinedSecureTextField(
                         state = viewModel.confirmPassword,
-                        label = { Text("Repeat password") },
+                        label = { Text(stringResource(R.string.backup_repeat_password)) },
                         isError = viewModel.passwordError != null,
-                        supportingText = viewModel.passwordError?.let { error -> { Text(error) } },
+                        supportingText = viewModel.passwordError?.let { error -> { Text(error.asString()) } },
                         onKeyboardAction = {
                             if (viewModel.confirmExportPassword()) onChooseExportFile(viewModel.suggestedFileName())
                         },
@@ -97,50 +98,47 @@ fun BackupDialogs(viewModel: BackupViewModel, onChooseExportFile: (String) -> Un
                     onClick = {
                         if (viewModel.confirmExportPassword()) onChooseExportFile(viewModel.suggestedFileName())
                     },
-                ) { Text("Choose where to save") }
+                ) { Text(stringResource(R.string.backup_choose_location)) }
             },
             dismissButton = {
-                TextButton(onClick = viewModel::dismissDialog) { Text("Cancel") }
+                TextButton(onClick = viewModel::dismissDialog) { Text(stringResource(R.string.action_cancel)) }
             },
         )
 
         is BackupDialog.EnterRestorePassword -> AlertDialog(
             onDismissRequest = viewModel::dismissDialog,
             icon = { Icon(Icons.Rounded.SettingsBackupRestore, contentDescription = null) },
-            title = { Text("Restore from backup") },
+            title = { Text(stringResource(R.string.backup_restore_title)) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Text(
-                        "Items from the backup are added to this phone. " +
-                            "Nothing that's already here is changed or deleted.",
-                    )
+                    Text(stringResource(R.string.backup_restore_body))
                     OutlinedSecureTextField(
                         state = viewModel.password,
-                        label = { Text("Backup password") },
+                        label = { Text(stringResource(R.string.backup_restore_password)) },
                         isError = viewModel.passwordError != null,
-                        supportingText = viewModel.passwordError?.let { error -> { Text(error) } },
+                        supportingText = viewModel.passwordError?.let { error -> { Text(error.asString()) } },
                         onKeyboardAction = { viewModel.confirmRestorePassword() },
                         modifier = Modifier.fillMaxWidth(),
                     )
                 }
             },
             confirmButton = {
-                TextButton(onClick = viewModel::confirmRestorePassword) { Text("Restore") }
+                TextButton(onClick = viewModel::confirmRestorePassword) { Text(stringResource(R.string.backup_restore_action)) }
             },
             dismissButton = {
-                TextButton(onClick = viewModel::dismissDialog) { Text("Cancel") }
+                TextButton(onClick = viewModel::dismissDialog) { Text(stringResource(R.string.action_cancel)) }
             },
         )
 
         is BackupDialog.Working -> AlertDialog(
             onDismissRequest = {}, // must finish: a half-written backup is useless
             properties = DialogProperties(dismissOnBackPress = false, dismissOnClickOutside = false),
-            title = { Text(if (dialog.restoring) "Restoring…" else "Backing up…") },
+            title = { Text(stringResource(if (dialog.restoring) R.string.backup_working_restore else R.string.backup_working_export)) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     LinearProgressIndicator(Modifier.fillMaxWidth())
                     Text(
-                        "Keep Stash open until this finishes.",
+                        stringResource(R.string.backup_keep_open),
                         style = MaterialTheme.typography.bodyMedium,
                     )
                 }
@@ -155,13 +153,12 @@ fun BackupDialogs(viewModel: BackupViewModel, onChooseExportFile: (String) -> Un
 fun BackupReminderCard(reminder: BackupReminder, onBackUp: () -> Unit, onLater: () -> Unit) {
     val (title, body) = when (reminder) {
         is BackupReminder.NeverBackedUp ->
-            "Back up your stash" to
-                "Everything you've stashed lives only on this phone. An encrypted backup keeps it safe " +
-                "if the phone is lost, broken or replaced."
+            stringResource(R.string.reminder_first_title) to stringResource(R.string.reminder_first_body)
         is BackupReminder.Stale ->
-            "Time for a backup" to
-                "Your last backup was ${reminder.daysSinceBackup} days ago, and " +
-                "${if (reminder.changedSince == 1) "1 item has" else "${reminder.changedSince} items have"} changed since."
+            stringResource(R.string.reminder_stale_title) to
+                pluralStringResource(R.plurals.reminder_stale_days, reminder.daysSinceBackup, reminder.daysSinceBackup) +
+                " " +
+                pluralStringResource(R.plurals.reminder_stale_changed, reminder.changedSince, reminder.changedSince)
     }
     Card(
         colors = CardDefaults.cardColors(
@@ -181,8 +178,8 @@ fun BackupReminderCard(reminder: BackupReminder, onBackUp: () -> Unit, onLater: 
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
             ) {
-                TextButton(onClick = onLater) { Text("Later") }
-                Button(onClick = onBackUp) { Text("Back up now") }
+                TextButton(onClick = onLater) { Text(stringResource(R.string.reminder_later)) }
+                Button(onClick = onBackUp) { Text(stringResource(R.string.reminder_back_up_now)) }
             }
         }
     }

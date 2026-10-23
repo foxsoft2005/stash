@@ -1,5 +1,136 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    English (default). Every user-visible text lives here; translations are in
+    values-<lang>/strings.xml and must have exactly the same names (lint fails
+    the build on a missing translation). Plurals: English needs one/other;
+    other languages may need more forms (Russian: one/few/many/other).
+-->
 <resources>
-    <string name="app_name">Stash</string>
+    <string name="app_name" translatable="false">Stash</string>
+
+    <!-- Launcher long-press shortcut -->
     <string name="shortcut_capture_short">Stash it</string>
     <string name="shortcut_capture_long">Stash something</string>
+
+    <!-- Shared -->
+    <string name="action_cancel">Cancel</string>
+    <string name="action_delete">Delete</string>
+    <string name="action_back">Back</string>
+
+    <!-- Home -->
+    <string name="home_capture">Stash it</string>
+    <string name="home_search_placeholder">Where\'s my…?</string>
+    <string name="home_clear_search">Clear search</string>
+    <string name="home_filter_all">All %1$d</string>
+    <string name="home_filter_lent">Lent out %1$d</string>
+    <string name="home_no_match_title">Nothing matches “%1$s”</string>
+    <string name="home_no_match_body">Maybe it hasn\'t been stashed yet.</string>
+    <string name="home_lent_to">Lent to %1$s</string>
+    <string name="home_last_stored_in">Last stored in: %1$s</string>
+    <string name="home_empty_title">Nothing stashed yet</string>
+    <string name="home_empty_body">Snap a photo when you put something away. Months later, just ask “where\'s my passport?”</string>
+
+    <!-- Camera -->
+    <string name="capture_permission_rationale">Stash needs the camera to photograph where you put things. Photos stay on this phone.</string>
+    <string name="capture_permission_denied">Camera access is turned off for Stash. Turn it on in Settings › Permissions › Camera. Photos stay on this phone.</string>
+    <string name="capture_allow_camera">Allow camera</string>
+    <string name="capture_open_settings">Open settings</string>
+    <string name="capture_close">Close camera</string>
+    <string name="capture_failed">Couldn\'t take the photo. Try again.</string>
+
+    <!-- New / edit item -->
+    <string name="edit_title_new">New stash</string>
+    <string name="edit_title_existing">Stashed item</string>
+    <string name="edit_save">Save</string>
+    <string name="edit_name_label">What is it?</string>
+    <string name="edit_place_label">Where did you put it?</string>
+    <string name="edit_place_placeholder">Top drawer, blue box</string>
+    <string name="edit_keywords_title">Search keywords</string>
+    <string name="edit_remove_keyword">Remove %1$s</string>
+    <string name="edit_add_keyword_label">Add a keyword</string>
+    <string name="edit_add_keyword_placeholder">e.g. travel wallet</string>
+    <string name="edit_add_keyword">Add keyword</string>
+    <string name="edit_lent_to_label">Lent to (optional)</string>
+    <string name="edit_returned">Returned</string>
+    <string name="edit_note_label">Note (optional)</string>
+    <string name="edit_delete_title">Delete this item?</string>
+    <string name="edit_delete_body">The photo and its location will be removed from this phone.</string>
+
+    <!-- On-device AI -->
+    <string name="ai_thinking">Recognizing on-device…</string>
+    <string name="ai_suggested_nano">Suggested by Gemini Nano, on this phone</string>
+    <string name="ai_suggested_labels">Suggested by on-device image labels</string>
+    <string name="ai_no_idea">Couldn\'t recognize it. Just type what it is.</string>
+    <string name="ai_nano_downloading">Gemini Nano is downloading. Suggestions get smarter once it\'s ready.</string>
+    <string name="ai_nano_offer">Get smarter suggestions with Gemini Nano</string>
+    <string name="ai_nano_prompt_title">Smarter suggestions?</string>
+    <string name="ai_nano_prompt_body">Stash can use Gemini Nano, Google\'s on-device AI, to name what\'s in your photos and add better search keywords. It runs entirely on this phone: nothing is uploaded.\n\nIt\'s a large one-time download, handled by Android. Wi-Fi recommended.\n\nWithout it, Stash uses simpler built-in image labels.</string>
+    <string name="ai_nano_prompt_download">Download</string>
+    <string name="ai_nano_prompt_decline">No thanks</string>
+
+    <!-- Backup: menu and dialogs -->
+    <string name="backup_more_options">More options</string>
+    <string name="backup_menu_back_up">Back up…</string>
+    <string name="backup_menu_restore">Restore…</string>
+    <string name="backup_export_title">Back up your stash</string>
+    <string name="backup_export_body">All items and photos go into one encrypted file. Choose a password for it: you\'ll need it to restore, and a forgotten password can\'t be recovered.</string>
+    <string name="backup_password">Password</string>
+    <string name="backup_repeat_password">Repeat password</string>
+    <string name="backup_choose_location">Choose where to save</string>
+    <string name="backup_restore_title">Restore from backup</string>
+    <string name="backup_restore_body">Items from the backup are added to this phone. Nothing that\'s already here is changed or deleted.</string>
+    <string name="backup_restore_password">Backup password</string>
+    <string name="backup_restore_action">Restore</string>
+    <string name="backup_working_export">Backing up…</string>
+    <string name="backup_working_restore">Restoring…</string>
+    <string name="backup_keep_open">Keep Stash open until this finishes.</string>
+
+    <!-- Backup: password checks -->
+    <plurals name="backup_password_too_short">
+        <item quantity="one">Use at least %d character.</item>
+        <item quantity="other">Use at least %d characters.</item>
+    </plurals>
+    <string name="backup_password_mismatch">The passwords don\'t match.</string>
+
+    <!-- Backup: results -->
+    <plurals name="backup_done">
+        <item quantity="one">Backed up %d item. Keep the file and its password somewhere safe: without the password it can\'t be opened.</item>
+        <item quantity="other">Backed up %d items. Keep the file and its password somewhere safe: without the password it can\'t be opened.</item>
+    </plurals>
+    <string name="backup_start_again">Please start the backup again.</string>
+    <plurals name="restore_added">
+        <item quantity="one">Restored %d item.</item>
+        <item quantity="other">Restored %d items.</item>
+    </plurals>
+    <plurals name="restore_skipped">
+        <item quantity="one">%d item already on this phone was skipped.</item>
+        <item quantity="other">%d items already on this phone were skipped.</item>
+    </plurals>
+    <string name="restore_nothing_new">Nothing new: everything in that backup is already on this phone.</string>
+    <string name="restore_empty">That backup is empty.</string>
+
+    <!-- Backup: errors -->
+    <string name="backup_error_not_a_backup">That file isn\'t a Stash backup.</string>
+    <string name="backup_error_wrong_password">Wrong password, or the file is damaged.</string>
+    <string name="backup_error_damaged">This backup is damaged and can\'t be restored. Nothing was changed.</string>
+    <string name="backup_error_newer_version">This backup was made by a newer version of Stash. Update the app, then try again.</string>
+    <string name="backup_error_read">Couldn\'t read that file.</string>
+    <string name="backup_error_write">Couldn\'t save the backup there. Try another place.</string>
+    <string name="restore_failed">Restore failed. Nothing was changed.</string>
+    <string name="backup_failed">Backup failed.</string>
+
+    <!-- Backup reminder card -->
+    <string name="reminder_first_title">Back up your stash</string>
+    <string name="reminder_first_body">Everything you\'ve stashed lives only on this phone. An encrypted backup keeps it safe if the phone is lost, broken or replaced.</string>
+    <string name="reminder_stale_title">Time for a backup</string>
+    <plurals name="reminder_stale_days">
+        <item quantity="one">Your last backup was %d day ago.</item>
+        <item quantity="other">Your last backup was %d days ago.</item>
+    </plurals>
+    <plurals name="reminder_stale_changed">
+        <item quantity="one">%d item has changed since.</item>
+        <item quantity="other">%d items have changed since.</item>
+    </plurals>
+    <string name="reminder_later">Later</string>
+    <string name="reminder_back_up_now">Back up now</string>
 </resources>

@@ -10,7 +10,9 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import io.github.foxsoft2005.stash.data.backup.BackupException
+import io.github.foxsoft2005.stash.R
 import io.github.foxsoft2005.stash.data.backup.BackupManager
+import io.github.foxsoft2005.stash.ui.UiText
 import kotlinx.coroutines.launch
 import java.io.IOException
 import java.time.LocalDate
@@ -35,11 +37,11 @@ class BackupViewModel(private val backup: BackupManager) : ViewModel() {
 
     var dialog by mutableStateOf<BackupDialog>(BackupDialog.None)
         private set
-    var passwordError by mutableStateOf<String?>(null)
+    var passwordError by mutableStateOf<UiText?>(null)
         private set
 
     /** One-off result for the snackbar; call [messageShown] once displayed. */
-    var message by mutableStateOf<String?>(null)
+    var message by mutableStateOf<UiText?>(null)
         private set
 
     // Held only between "password chosen" and "file picked".
@@ -56,8 +58,8 @@ class BackupViewModel(private val backup: BackupManager) : ViewModel() {
     fun confirmExportPassword(): Boolean {
         val chosen = password.text.toString()
         passwordError = when {
-            chosen.length < MIN_PASSWORD_LENGTH -> "Use at least $MIN_PASSWORD_LENGTH characters."
-            chosen != confirmPassword.text.toString() -> "The passwords don't match."
+            chosen.length < MIN_PASSWORD_LENGTH -> UiText.plural(R.plurals.backup_password_too_short, MIN_PASSWORD_LENGTH)
+            chosen != confirmPassword.text.toString() -> UiText.of(R.string.backup_password_mismatch)
             else -> null
         }
         if (passwordError != null) return false
@@ -78,7 +80,7 @@ class BackupViewModel(private val backup: BackupManager) : ViewModel() {
             return
         }
         if (pw == null) { // app was killed while the picker was open
-            message = "Please start the backup again."
+            message = UiText.of(R.string.backup_start_again)
             return
         }
         run(restoring = false, onError = { message = it }) {
@@ -87,8 +89,7 @@ class BackupViewModel(private val backup: BackupManager) : ViewModel() {
             } finally {
                 pw.fill('\u0000')
             }
-            message = "Backed up ${items(result.items)}. Keep the file and its password somewhere safe: " +
-                "without the password it can't be opened."
+            message = UiText.plural(R.plurals.backup_done, result.items)
         }
     }
 
@@ -113,7 +114,7 @@ class BackupViewModel(private val backup: BackupManager) : ViewModel() {
             onWrongPassword = {
                 // Let them try again without picking the file again.
                 dialog = BackupDialog.EnterRestorePassword(file)
-                passwordError = "Wrong password, or the file is damaged."
+                passwordError = UiText.of(R.string.backup_error_wrong_password)
             },
         ) {
             val result = try {
@@ -122,10 +123,15 @@ class BackupViewModel(private val backup: BackupManager) : ViewModel() {
                 pw.fill('\u0000')
             }
             message = when {
-                result.added == 0 && result.alreadyOnPhone == 0 -> "That backup is empty."
-                result.added == 0 -> "Nothing new: everything in that backup is already on this phone."
-                result.alreadyOnPhone == 0 -> "Restored ${items(result.added)}."
-                else -> "Restored ${items(result.added)}. ${items(result.alreadyOnPhone)} already on this phone were skipped."
+                result.added == 0 && result.alreadyOnPhone == 0 -> UiText.of(R.string.restore_empty)
+                result.added == 0 -> UiText.of(R.string.restore_nothing_new)
+                result.alreadyOnPhone == 0 -> UiText.plural(R.plurals.restore_added, result.added)
+                else -> UiText.Join(
+                    listOf(
+                        UiText.plural(R.plurals.restore_added, result.added),
+                        UiText.plural(R.plurals.restore_skipped, result.alreadyOnPhone),
+                    ),
+                )
             }
         }
     }
@@ -144,7 +150,7 @@ class BackupViewModel(private val backup: BackupManager) : ViewModel() {
 
     private fun run(
         restoring: Boolean,
-        onError: (String) -> Unit,
+        onError: (UiText) -> Unit,
         onWrongPassword: (() -> Unit)? = null,
         block: suspend () -> Unit,
     ) {
@@ -165,21 +171,23 @@ class BackupViewModel(private val backup: BackupManager) : ViewModel() {
             } catch (e: IOException) {
                 Log.w(TAG, "Backup file I/O failed", e)
                 dialog = BackupDialog.None
-                onError(if (restoring) "Couldn't read that file." else "Couldn't save the backup there. Try another place.")
+                onError(UiText.of(if (restoring) R.string.backup_error_read else R.string.backup_error_write))
             } catch (e: Exception) {
                 Log.e(TAG, "Backup failed", e)
                 dialog = BackupDialog.None
-                onError(if (restoring) "Restore failed. Nothing was changed." else "Backup failed.")
+                onError(UiText.of(if (restoring) R.string.restore_failed else R.string.backup_failed))
             }
         }
     }
 
-    private fun describe(reason: BackupException.Reason) = when (reason) {
-        BackupException.Reason.NOT_A_BACKUP -> "That file isn't a Stash backup."
-        BackupException.Reason.WRONG_PASSWORD_OR_DAMAGED -> "Wrong password, or the file is damaged."
-        BackupException.Reason.DAMAGED -> "This backup is damaged and can't be restored. Nothing was changed."
-        BackupException.Reason.NEWER_VERSION -> "This backup was made by a newer version of Stash. Update the app, then try again."
-    }
+    private fun describe(reason: BackupException.Reason) = UiText.of(
+        when (reason) {
+            BackupException.Reason.NOT_A_BACKUP -> R.string.backup_error_not_a_backup
+            BackupException.Reason.WRONG_PASSWORD_OR_DAMAGED -> R.string.backup_error_wrong_password
+            BackupException.Reason.DAMAGED -> R.string.backup_error_damaged
+            BackupException.Reason.NEWER_VERSION -> R.string.backup_error_newer_version
+        },
+    )
 
     private fun clearPasswords() {
         password.clearText()
@@ -194,7 +202,5 @@ class BackupViewModel(private val backup: BackupManager) : ViewModel() {
     private companion object {
         const val TAG = "Backup"
         const val MIN_PASSWORD_LENGTH = 8
-
-        fun items(n: Int) = if (n == 1) "1 item" else "$n items"
     }
 }
