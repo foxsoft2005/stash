@@ -109,7 +109,14 @@ jobs:
           fi
           build_tools=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)
           "$build_tools/apksigner" verify --verbose --print-certs "$apk" | tee "$RUNNER_TEMP/signature.txt"
-          cert=$(grep -m1 'certificate SHA-256 digest' "$RUNNER_TEMP/signature.txt" | awk -F': ' '{print $2}')
+          # The signer's certificate fingerprint: the 64 hex digits on the
+          # "certificate SHA-256 digest" line (not the public-key digest).
+          cert=$(grep -i 'certificate SHA-256 digest' "$RUNNER_TEMP/signature.txt" | grep -oiE '[0-9a-f]{64}' | head -1 | tr 'A-F' 'a-f')
+          if [ -z "$cert" ]; then
+            echo "::error title=No certificate fingerprint::Couldn't read the signing certificate's SHA-256 from apksigner. Output above."
+            exit 1
+          fi
+          echo "Signing certificate SHA-256: $cert"
 
           out="stash-$NAME.apk"
           cp "$apk" "$out"
