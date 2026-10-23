@@ -51,7 +51,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -82,7 +82,7 @@ fun HomeScreen(
     )
 
     val message = backupViewModel.message
-    val resources = LocalContext.current.resources
+    val resources = LocalResources.current
     LaunchedEffect(message) {
         if (message != null) {
             snackbar.showSnackbar(message.resolve(resources), withDismissAction = true, duration = SnackbarDuration.Long)
