@@ -77,6 +77,7 @@ dependencies {
 
     // Images
     implementation(libs.coil.compose)
+    implementation(libs.androidx.exifinterface) // reads photo orientation before AI tagging
 
     // Coroutines / serialization
     implementation(libs.kotlinx.coroutines.android)

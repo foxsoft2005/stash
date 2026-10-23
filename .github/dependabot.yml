@@ -1,0 +1,43 @@
+# Dependabot opens a PR when a dependency has a new version; Android CI then
+# builds and tests it, so most updates are a review + merge.
+# Docs: https://docs.github.com/code-security/dependabot/working-with-dependabot/dependabot-options-reference
+version: 2
+updates:
+  # Libraries and Gradle plugins from gradle/libs.versions.toml (+ the Gradle wrapper).
+  - package-ecosystem: gradle
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: deps
+    labels: [dependencies]
+    # Related libraries move together, so group them: fewer PRs, and no
+    # half-upgraded combinations (e.g. Kotlin without the matching KSP).
+    groups:
+      kotlin-and-build:
+        patterns:
+          - "org.jetbrains.kotlin*"
+          - "com.google.devtools.ksp*"
+          - "com.android.*"
+      androidx:
+        patterns: ["androidx.*"]
+      mlkit:
+        patterns: ["com.google.mlkit*"]
+      other:
+        patterns: ["*"]
+        update-types: [minor, patch]
+
+  # Versions of the actions used in .github/workflows/.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    commit-message:
+      prefix: ci
+    labels: [dependencies]
+    groups:
+      actions:
+        patterns: ["*"]
