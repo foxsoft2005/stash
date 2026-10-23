@@ -6,6 +6,12 @@ plugins {
     alias(libs.plugins.room3)
 }
 
+// Release builds are signed in CI only (see .github/workflows/release.yml and
+// RELEASING.md). The keystore and its passwords come from environment variables
+// backed by GitHub secrets; they are never in the repo. Without them,
+// assembleRelease still works and produces an unsigned APK.
+val releaseKeystore = providers.environmentVariable("STASH_KEYSTORE_PATH").orNull
+
 android {
     namespace = "dev.stash.app"
     compileSdk = 37
@@ -14,8 +20,20 @@ android {
         applicationId = "dev.stash.app"
         minSdk = 26          // ML Kit GenAI Prompt API requires API 26+
         targetSdk = 37
-        versionCode = 1
-        versionName = "0.1.0"
+        // Set from the git tag by the release workflow (v1.2.3 -> "1.2.3", 1002003).
+        versionCode = providers.environmentVariable("STASH_VERSION_CODE").orNull?.toInt() ?: 1
+        versionName = providers.environmentVariable("STASH_VERSION_NAME").orNull ?: "0.1.0-dev"
+    }
+
+    signingConfigs {
+        if (releaseKeystore != null) {
+            create("release") {
+                storeFile = file(releaseKeystore)
+                storePassword = providers.environmentVariable("STASH_KEYSTORE_PASSWORD").get()
+                keyAlias = providers.environmentVariable("STASH_KEY_ALIAS").get()
+                keyPassword = providers.environmentVariable("STASH_KEY_PASSWORD").get()
+            }
+        }
     }
 
     buildTypes {
@@ -23,6 +41,7 @@ android {
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"))
+            if (releaseKeystore != null) signingConfig = signingConfigs.getByName("release")
         }
     }
 

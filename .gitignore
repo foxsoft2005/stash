@@ -9,3 +9,9 @@
 .externalNativeBuild/
 .cxx/
 .kotlin/
+
+# Signing keys must never be committed (see RELEASING.md)
+*.jks
+*.keystore
+*.p12
+keystore.properties
