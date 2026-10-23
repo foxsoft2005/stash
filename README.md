@@ -30,7 +30,7 @@ Everything stays on the phone. There's no account, no server, and no `INTERNET` 
 ## Project layout
 
 ```
-app/src/main/java/com/foxsoft2005/stash/app/
+app/src/main/java/io/github/foxsoft2005/stash/
 ├── StashApp.kt              Application + tiny manual DI container
 ├── MainActivity.kt          edge-to-edge, handles the capture shortcut
 ├── data/                    Room 3 entity/DAO/DB, repository, private photo store
