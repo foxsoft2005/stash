@@ -1,5 +1,8 @@
 # Stash: "Where did I put it?"
 
+[![Android CI](https://github.com/foxsoft2005/stash/actions/workflows/android.yml/badge.svg)](https://github.com/foxsoft2005/stash/actions/workflows/android.yml)
+[![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
+
 Snap a photo when you put something away. Months later, ask *"where's my passport?"* and get the answer: **Top drawer, blue box**.
 
 Everything stays on the phone. There's no account, no server, and no `INTERNET` permission. Android's Google Drive backup is switched off for the app's data too; only direct phone-to-phone transfer (Android 12+) can copy your stash to a new phone.
@@ -68,3 +71,15 @@ Every pull request and push to `main` runs **Android CI** (`.github/workflows/an
 - **Home-screen widget** (Glance) with a one-tap camera button and a search box.
 - **Rooms and containers** as a hierarchy (House › Bedroom › Wardrobe › Blue box).
 - **Semantic search** with on-device text embeddings, so "ID documents" finds "passport" even without matching tags.
+
+## Contributing
+
+Issues and pull requests are welcome. Every PR is built and tested by **Android CI**; please make sure its check is green. Dependency updates arrive weekly as grouped Dependabot PRs.
+
+Found a security problem? Please report it privately; see [SECURITY.md](SECURITY.md).
+
+## License
+
+Copyright 2026 foxsoft2005
+
+Licensed under the [Apache License, Version 2.0](LICENSE). You may use, modify and distribute this code, including commercially, as long as you keep the license and copyright notices and state your changes. It comes with no warranty.

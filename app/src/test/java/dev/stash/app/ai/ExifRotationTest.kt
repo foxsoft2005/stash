@@ -1,6 +1,6 @@
 package dev.stash.app.ai
 
-import android.media.ExifInterface
+import androidx.exifinterface.media.ExifInterface
 import org.junit.Assert.assertEquals
 import org.junit.Test
 

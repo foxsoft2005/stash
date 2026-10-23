@@ -13,6 +13,7 @@ navigation3 = "1.2.0"
 room3 = "3.0.1"
 sqlite = "2.7.1"
 camerax = "1.6.2"
+exifinterface = "1.4.1"
 
 # Other
 coil = "3.6.3"
@@ -50,6 +51,7 @@ androidx-camera-lifecycle = { module = "androidx.camera:camera-lifecycle", versi
 androidx-camera-compose = { module = "androidx.camera:camera-compose", version.ref = "camerax" }
 
 coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil" }
+androidx-exifinterface = { module = "androidx.exifinterface:exifinterface", version.ref = "exifinterface" }
 
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "coroutines" }
 kotlinx-coroutines-play-services = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-play-services", version.ref = "coroutines" }
