@@ -5,7 +5,10 @@ import android.graphics.BitmapFactory
 import android.graphics.Matrix
 import android.media.ExifInterface
 import android.util.Log
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlin.coroutines.cancellation.CancellationException
@@ -29,9 +32,40 @@ data class TagSuggestion(
 class SmartTagger(
     private val nano: GeminiNanoTagger,
     private val labels: MlKitLabelTagger,
+    private val consent: NanoConsentStore,
+    private val appScope: CoroutineScope,
 ) {
-    /** Call once at startup: checks Gemini Nano and starts its download if needed. */
-    suspend fun prepare() = nano.prepare()
+    val nanoState: StateFlow<NanoState> get() = nano.state
+
+    /**
+     * Call once at startup. Checks Gemini Nano, but only downloads it if the user
+     * already agreed (an earlier download got interrupted, or AICore evicted it).
+     */
+    suspend fun prepare() {
+        val state = nano.refreshStatus()
+        when {
+            state == NanoState.READY -> nano.warmup()
+            shouldDownloadOnStartup(state, consent.value) -> nano.download()
+        }
+    }
+
+    /** True when this photo should come with the "download Gemini Nano?" question. */
+    suspend fun needsNanoPrompt(): Boolean {
+        // The startup check may not have finished yet (e.g. opened straight from the camera shortcut).
+        val state = nano.state.value.takeUnless { it == NanoState.CHECKING } ?: nano.refreshStatus()
+        return shouldAskForNano(state, consent.value)
+    }
+
+    /** User said yes: remember it and download in the background (outlives the screen). */
+    fun acceptNano() {
+        consent.value = NanoConsent.ACCEPTED
+        appScope.launch { nano.download() }
+    }
+
+    /** User said no: ML Kit labels from now on; never asked again automatically. */
+    fun declineNano() {
+        consent.value = NanoConsent.DECLINED
+    }
 
     /**
      * Gemini Nano first (null on timeout, error or no Nano), then ML Kit labels.

@@ -8,6 +8,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dev.stash.app.ai.NanoState
 import dev.stash.app.ai.SmartTagger
 import dev.stash.app.ai.TagSource
 import dev.stash.app.data.Item
@@ -57,6 +58,11 @@ class EditItemViewModel(
     var showErrors by mutableStateOf(false)
         private set
 
+    /** The one-time "download Gemini Nano?" dialog. */
+    var showNanoPrompt by mutableStateOf(false)
+        private set
+    val nanoState: StateFlow<NanoState> = tagger.nanoState
+
     val isNew: Boolean get() = itemId == null
 
     val recentPlaces: StateFlow<List<String>> = repository.observeRecentPlaces()
@@ -69,7 +75,10 @@ class EditItemViewModel(
         if (itemId != null) {
             viewModelScope.launch { load(itemId) }
         } else if (newPhotoPath != null) {
+            // This photo is tagged with whatever is on the phone now (labels if Nano is
+            // missing), so asking never delays the first suggestion.
             viewModelScope.launch { suggestFromPhoto(newPhotoPath) }
+            viewModelScope.launch { if (tagger.needsNanoPrompt()) showNanoPrompt = true }
         }
     }
 
@@ -116,6 +125,26 @@ class EditItemViewModel(
     }
 
     fun markReturned() = lentTo.setTextAndPlaceCursorAtEnd("")
+
+    fun acceptNano() {
+        tagger.acceptNano()
+        showNanoPrompt = false
+    }
+
+    fun declineNano() {
+        tagger.declineNano()
+        showNanoPrompt = false
+    }
+
+    /** Tapped outside the dialog: no answer, so it's asked again with the next photo. */
+    fun dismissNanoPrompt() {
+        showNanoPrompt = false
+    }
+
+    /** "Get smarter suggestions" link: lets someone who said no change their mind. */
+    fun offerNano() {
+        showNanoPrompt = true
+    }
 
     val canSave: Boolean get() = name.text.isNotBlank() && place.text.isNotBlank()
 
