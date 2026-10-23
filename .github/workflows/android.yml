@@ -25,22 +25,25 @@ jobs:
 
     steps:
       - name: Check out
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       # gradle/gradle-daemon-jvm.properties asks for Java 25; installing it here
       # avoids Gradle downloading a JDK on every run.
       - name: Set up JDK 25
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: '25'
 
-      # Caches Gradle downloads and build outputs between runs. Only main writes
-      # the cache; PRs read it, so a PR can't poison builds of main.
+      # Caches Gradle downloads and build outputs between runs. Only pushes to main
+      # write the cache (setup-gradle's default), so a PR can't poison builds of main.
+      # "basic" = the open-source provider on top of GitHub's own cache: free for
+      # private repos. The default "enhanced" provider is closed-source, only a free
+      # preview for private repos, and sends cache metadata to Gradle.
       - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v6
         with:
-          cache-read-only: ${{ github.ref != 'refs/heads/main' }}
+          cache-provider: basic
 
       - name: Build debug APK
         run: ./gradlew assembleDebug --stacktrace
@@ -78,13 +81,18 @@ jobs:
               failed += int(r.get("failures", 0)) + int(r.get("errors", 0))
               skipped += int(r.get("skipped", 0))
           lint = Counter()
+          lint_ids = Counter()
           lint_reports = glob.glob("app/build/reports/lint-results-debug.xml")
           for f in lint_reports:
-              lint.update(i.get("severity") for i in ET.parse(f).getroot().iter("issue"))
+              for issue in ET.parse(f).getroot().iter("issue"):
+                  lint[issue.get("severity")] += 1
+                  lint_ids[issue.get("id")] += 1
           if not lint_reports:
               lint_text = "no report found"
           else:
               lint_text = ", ".join(f"{n} {sev.lower()}" for sev, n in lint.most_common()) or "no issues"
+              if lint_ids:
+                  lint_text += " (" + ", ".join(f"{i} ×{n}" for i, n in lint_ids.most_common(8)) + ")"
           print(f"::notice title=Unit tests::{tests} run, {failed} failed, {skipped} skipped")
           print(f"::notice title=Lint::{lint_text}")
           with open(__import__("os").environ["GITHUB_STEP_SUMMARY"], "a") as out:
@@ -96,7 +104,7 @@ jobs:
       # Download from the run's Summary page and install with:
       #   adb install -r app-debug.apk
       - name: Upload debug APK
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: stash-debug-apk
           path: app/build/outputs/apk/debug/*.apk
@@ -105,7 +113,7 @@ jobs:
 
       - name: Upload test and lint reports
         if: ${{ !cancelled() }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: reports
           path: |
