@@ -9,9 +9,13 @@ import kotlinx.coroutines.tasks.await
 /** Fallback for phones without Gemini Nano: bundled ML Kit model, ~400 generic labels. */
 class MlKitLabelTagger {
 
-    private val labeler = ImageLabeling.getClient(
-        ImageLabelerOptions.Builder().setConfidenceThreshold(0.55f).build(),
-    )
+    // Created on first use, not at app start: if ML Kit fails here, only this
+    // suggestion fails (SmartTagger catches it), never the whole app.
+    private val labeler by lazy {
+        ImageLabeling.getClient(
+            ImageLabelerOptions.Builder().setConfidenceThreshold(0.55f).build(),
+        )
+    }
 
     suspend fun suggest(bitmap: Bitmap): TagSuggestion? {
         val labels = labeler.process(InputImage.fromBitmap(bitmap, 0)).await()

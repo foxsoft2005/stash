@@ -25,7 +25,17 @@ import kotlin.coroutines.cancellation.CancellationException
  */
 class GeminiNanoTagger {
 
-    private val model = Generation.getClient()
+    // Created on first use (not at app start) and allowed to fail: Gemini Nano is
+    // an optional extra, so a broken or missing ML Kit GenAI must never take the
+    // whole app down. null = treat Nano as unavailable on this phone.
+    private val model by lazy {
+        try {
+            Generation.getClient()
+        } catch (e: Exception) {
+            Log.w(TAG, "Gemini Nano client unavailable", e)
+            null
+        }
+    }
 
     private val _state = MutableStateFlow(NanoState.CHECKING)
     val state: StateFlow<NanoState> = _state.asStateFlow()
@@ -35,7 +45,7 @@ class GeminiNanoTagger {
     /** Asks AICore where Nano stands. Cheap; safe to call often. */
     suspend fun refreshStatus(): NanoState {
         val status = try {
-            when (model.checkStatus()) {
+            when (model?.checkStatus()) { // null client -> else -> UNAVAILABLE
                 FeatureStatus.AVAILABLE -> NanoState.READY
                 FeatureStatus.DOWNLOADABLE -> NanoState.NEEDS_DOWNLOAD
                 FeatureStatus.DOWNLOADING -> NanoState.DOWNLOADING
@@ -56,7 +66,7 @@ class GeminiNanoTagger {
     suspend fun warmup() {
         if (_state.value != NanoState.READY) return
         try {
-            model.warmup()
+            model?.warmup()
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
@@ -69,10 +79,11 @@ class GeminiNanoTagger {
      * the download finishes or fails; a second call while one is running is ignored.
      */
     suspend fun download() {
+        val client = model ?: return
         if (!downloadInFlight.compareAndSet(false, true)) return
         try {
             _state.value = NanoState.DOWNLOADING
-            model.download().collect { status ->
+            client.download().collect { status ->
                 when (status) {
                     is DownloadStatus.DownloadCompleted -> _state.value = NanoState.READY
                     is DownloadStatus.DownloadFailed -> {
@@ -96,7 +107,8 @@ class GeminiNanoTagger {
     suspend fun suggest(bitmap: Bitmap): TagSuggestion? {
         // AICore may have finished a download in the background since we last looked.
         if (_state.value != NanoState.READY && refreshStatus() != NanoState.READY) return null
-        val response = model.generateContent(
+        val client = model ?: return null
+        val response = client.generateContent(
             generateContentRequest(ImagePart(bitmap), TextPart(PROMPT)) {
                 temperature = 0.1f
                 maxOutputTokens = 120
