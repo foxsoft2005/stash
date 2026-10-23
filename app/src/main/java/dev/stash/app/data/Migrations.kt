@@ -2,7 +2,7 @@ package dev.stash.app.data
 
 import androidx.room3.migration.Migration
 import androidx.sqlite.SQLiteConnection
-import androidx.sqlite.async.executeSQL
+import androidx.sqlite.execSQL
 
 /**
  * v1 → v2: `items.tags` changes from space-separated to comma-separated (see [Tags]).
@@ -16,7 +16,7 @@ import androidx.sqlite.async.executeSQL
  */
 val MIGRATION_1_2 = object : Migration(1, 2) {
     override suspend fun migrate(connection: SQLiteConnection) {
-        connection.executeSQL(MIGRATION_1_2_SQL)
+        connection.execSQL(MIGRATION_1_2_SQL)
     }
 }
 
