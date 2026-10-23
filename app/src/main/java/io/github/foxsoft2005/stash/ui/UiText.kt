@@ -4,7 +4,7 @@ import android.content.res.Resources
 import androidx.annotation.PluralsRes
 import androidx.annotation.StringRes
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 
 /**
  * Text a ViewModel wants to show, as resource IDs + arguments rather than a
@@ -33,4 +33,4 @@ sealed interface UiText {
 }
 
 @Composable
-fun UiText.asString(): String = resolve(LocalContext.current.resources)
+fun UiText.asString(): String = resolve(LocalResources.current) // recomposes on a language change
