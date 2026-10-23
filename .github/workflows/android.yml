@@ -63,6 +63,36 @@ jobs:
             exit 1
           fi
 
+      # One-line results on the run and the PR, and a guard against "green but
+      # tested nothing" (e.g. a filter or source-set change that skips all tests).
+      - name: Summarize tests and lint
+        if: ${{ !cancelled() }}
+        shell: python
+        run: |
+          import glob, xml.etree.ElementTree as ET
+          from collections import Counter
+          tests = failed = skipped = 0
+          for f in glob.glob("app/build/test-results/testDebugUnitTest/*.xml"):
+              r = ET.parse(f).getroot()
+              tests += int(r.get("tests", 0))
+              failed += int(r.get("failures", 0)) + int(r.get("errors", 0))
+              skipped += int(r.get("skipped", 0))
+          lint = Counter()
+          lint_reports = glob.glob("app/build/reports/lint-results-debug.xml")
+          for f in lint_reports:
+              lint.update(i.get("severity") for i in ET.parse(f).getroot().iter("issue"))
+          if not lint_reports:
+              lint_text = "no report found"
+          else:
+              lint_text = ", ".join(f"{n} {sev.lower()}" for sev, n in lint.most_common()) or "no issues"
+          print(f"::notice title=Unit tests::{tests} run, {failed} failed, {skipped} skipped")
+          print(f"::notice title=Lint::{lint_text}")
+          with open(__import__("os").environ["GITHUB_STEP_SUMMARY"], "a") as out:
+              out.write(f"### Results\n| | |\n|---|---|\n| Unit tests | {tests} run, {failed} failed, {skipped} skipped |\n| Lint | {lint_text} |\n")
+          if tests == 0:
+              print("::error title=No tests ran::testDebugUnitTest produced no results")
+              raise SystemExit(1)
+
       # Download from the run's Summary page and install with:
       #   adb install -r app-debug.apk
       - name: Upload debug APK
