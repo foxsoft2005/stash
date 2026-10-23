@@ -7,6 +7,14 @@ Snap a photo when you put something away. Months later, ask *"where's my passpor
 
 Everything stays on the phone. There's no account, no server, and no `INTERNET` permission. Android's Google Drive backup is switched off for the app's data too; only direct phone-to-phone transfer (Android 12+) can copy your stash to a new phone.
 
+## Install
+
+Download the latest `stash-x.y.z.apk` from [**Releases**](https://github.com/foxsoft2005/stash/releases) and open it on your phone. Android will ask you to allow *Install unknown apps* for your browser or file manager. Requires Android 8.0 or newer.
+
+- **Updates:** Stash has no internet permission, so it can't check for updates itself. Add `https://github.com/foxsoft2005/stash` to [Obtainium](https://github.com/ImranR98/Obtainium) to get them automatically.
+- **Check it's genuine:** every release lists the APK's SHA-256 and the signing certificate's fingerprint. The certificate is the same for every release; Android itself refuses an update signed with a different one.
+- **Brazil, Indonesia, Singapore, Thailand:** since 30 Sept 2026 Android requires apps from developers registered with Google. Stash isn't registered yet, so there you'll need Android's *advanced flow* for unverified apps (or `adb install`). Google plans to extend this worldwide in 2027.
+
 ## How it works
 
 1. **Capture (under 3 s).** Long-press the app icon and choose **Stash something**, and the camera opens directly. Take the photo, pick a recent place chip, and tap **Save**.
@@ -59,8 +67,11 @@ An encrypted ZIP: `manifest.json` (items, with explicit stable JSON keys) plus `
 3. Run `./gradlew test` for the unit tests (search, tags, backup format, reminders, …).
 4. After any build, commit new files in `app/schemas/`. Room exports a JSON snapshot of each database version there, and migrations are checked against them.
 
+### Releases
+Pushing a tag like `v0.2.0` builds a signed APK and publishes it as a GitHub Release; see [RELEASING.md](RELEASING.md).
+
 ### CI
-Every pull request and push to `main` runs **Android CI** (`.github/workflows/android.yml`): debug build, unit tests, lint, and a check that `app/schemas/` is committed after database changes. Each run attaches the debug APK (*Summary → Artifacts*) for installing on a phone with `adb install -r app-debug.apk`, plus test and lint reports.
+Every pull request and push to `main` runs **Android CI** (`.github/workflows/android.yml`): debug and (unsigned) release builds, unit tests, lint, and a check that `app/schemas/` is committed after database changes. Each run attaches the debug APK (*Summary → Artifacts*) for installing on a phone with `adb install -r app-debug.apk`, plus test and lint reports.
 
 ### Notes and caveats
 - The ML Kit GenAI Prompt API is in **beta** (`1.0.0-beta4`), so its API can change.

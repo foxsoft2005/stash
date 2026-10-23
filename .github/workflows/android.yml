@@ -45,8 +45,10 @@ jobs:
         with:
           cache-provider: basic
 
-      - name: Build debug APK
-        run: ./gradlew assembleDebug --stacktrace
+      # Release is built too (unsigned, so no secrets needed): it runs R8 code
+      # shrinking, which can fail on things a debug build never touches.
+      - name: Build debug and release APKs
+        run: ./gradlew assembleDebug assembleRelease --stacktrace
 
       - name: Unit tests
         run: ./gradlew testDebugUnitTest --stacktrace
