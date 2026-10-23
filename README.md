@@ -7,7 +7,7 @@ Everything stays on the phone. There's no account, no server, and no `INTERNET` 
 ## How it works
 
 1. **Capture (under 3 s).** Long-press the app icon and choose **Stash something**, and the camera opens directly. Take the photo, pick a recent place chip, and tap **Save**.
-2. **On-device AI tags the photo while you type.** Gemini Nano (multimodal, through the ML Kit GenAI Prompt API) names the object and adds synonyms as tags, for example *passport → document, travel, id*. Phones without Nano fall back to ML Kit's bundled image-labeling model.
+2. **On-device AI tags the photo while you type.** Gemini Nano (multimodal, through the ML Kit GenAI Prompt API) names the object and adds synonyms as tags, for example *passport → document, travel, id*. Phones without Nano fall back to ML Kit's bundled image-labeling model. Nano is a large download, so Stash asks once, at the first photo; if you say no it keeps using the image labels, and you can still turn Nano on later from the edit screen ("Get smarter suggestions with Gemini Nano").
 3. **Ask in plain words.** Search accepts natural questions in English or Russian, ignores filler words, and tolerates plural and case endings (keys/key, паспорта/паспорт). The best match is shown as a big answer card.
 4. **Lending.** Enter who borrowed an item, then use the **Lent out** filter to see everything that's out. Searching "what did Mark borrow" also works.
 

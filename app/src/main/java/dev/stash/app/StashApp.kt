@@ -4,6 +4,7 @@ import android.app.Application
 import android.content.Context
 import dev.stash.app.ai.GeminiNanoTagger
 import dev.stash.app.ai.MlKitLabelTagger
+import dev.stash.app.ai.NanoConsentStore
 import dev.stash.app.ai.SmartTagger
 import dev.stash.app.data.ItemRepository
 import dev.stash.app.data.PhotoStore
@@ -32,7 +33,12 @@ class AppContainer(context: Context) {
     private val database = StashDatabase.create(context)
     val repository = ItemRepository(database.itemDao(), photos)
 
-    val tagger = SmartTagger(GeminiNanoTagger(), MlKitLabelTagger()).also { tagger ->
+    val tagger = SmartTagger(
+        nano = GeminiNanoTagger(),
+        labels = MlKitLabelTagger(),
+        consent = NanoConsentStore(context),
+        appScope = appScope,
+    ).also { tagger ->
         appScope.launch { tagger.prepare() }
     }
 }

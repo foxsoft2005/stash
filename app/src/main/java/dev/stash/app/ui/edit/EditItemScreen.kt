@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -51,7 +52,9 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
+import dev.stash.app.ai.NanoState
 import dev.stash.app.ai.TagSource
+import dev.stash.app.ai.canOfferNano
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
@@ -61,6 +64,7 @@ fun EditItemScreen(
     onBack: () -> Unit,
 ) {
     val recentPlaces by viewModel.recentPlaces.collectAsStateWithLifecycle()
+    val nanoState by viewModel.nanoState.collectAsStateWithLifecycle()
     var confirmDelete by remember { mutableStateOf(false) }
 
     Scaffold(
@@ -112,7 +116,7 @@ fun EditItemScreen(
                 )
             }
 
-            AiStatus(viewModel.aiState)
+            AiStatus(viewModel.aiState, nanoState, onOfferNano = viewModel::offerNano)
 
             OutlinedTextField(
                 state = viewModel.name,
@@ -200,6 +204,28 @@ fun EditItemScreen(
         }
     }
 
+    if (viewModel.showNanoPrompt) {
+        AlertDialog(
+            onDismissRequest = viewModel::dismissNanoPrompt,
+            icon = { Icon(Icons.Rounded.AutoAwesome, contentDescription = null) },
+            title = { Text("Smarter suggestions?") },
+            text = {
+                Text(
+                    "Stash can use Gemini Nano, Google's on-device AI, to name what's in your photos " +
+                        "and add better search keywords. It runs entirely on this phone: nothing is uploaded.\n\n" +
+                        "It's a large one-time download, handled by Android. Wi-Fi recommended.\n\n" +
+                        "Without it, Stash uses simpler built-in image labels.",
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = viewModel::acceptNano) { Text("Download") }
+            },
+            dismissButton = {
+                TextButton(onClick = viewModel::declineNano) { Text("No thanks") }
+            },
+        )
+    }
+
     if (confirmDelete) {
         AlertDialog(
             onDismissRequest = { confirmDelete = false },
@@ -218,7 +244,32 @@ fun EditItemScreen(
 }
 
 @Composable
-private fun AiStatus(state: AiState) {
+private fun AiStatus(state: AiState, nanoState: NanoState, onOfferNano: () -> Unit) {
+    Column {
+        AiStatusLine(state)
+        val usedFallback = state is AiState.NoIdea ||
+            (state is AiState.Suggested && state.source == TagSource.MLKIT_LABELS)
+        if (usedFallback) NanoHint(nanoState, onOfferNano)
+    }
+}
+
+/** Under a labels-only (or failed) suggestion: say Nano is coming, or offer it. */
+@Composable
+private fun NanoHint(nanoState: NanoState, onOfferNano: () -> Unit) {
+    when {
+        nanoState == NanoState.DOWNLOADING -> Text(
+            "Gemini Nano is downloading. Suggestions get smarter once it's ready.",
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        canOfferNano(nanoState) -> TextButton(onClick = onOfferNano, contentPadding = PaddingValues(0.dp)) {
+            Text("Get smarter suggestions with Gemini Nano")
+        }
+    }
+}
+
+@Composable
+private fun AiStatusLine(state: AiState) {
     when (state) {
         AiState.Idle -> Unit
         AiState.Thinking -> Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
