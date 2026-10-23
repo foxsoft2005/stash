@@ -48,10 +48,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
+import io.github.foxsoft2005.stash.R
 import io.github.foxsoft2005.stash.ai.NanoState
 import io.github.foxsoft2005.stash.ai.TagSource
 import io.github.foxsoft2005.stash.ai.canOfferNano
@@ -70,16 +72,16 @@ fun EditItemScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(if (viewModel.isNew) "New stash" else "Stashed item") },
+                title = { Text(stringResource(if (viewModel.isNew) R.string.edit_title_new else R.string.edit_title_existing)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = stringResource(R.string.action_back))
                     }
                 },
                 actions = {
                     if (!viewModel.isNew) {
                         IconButton(onClick = { confirmDelete = true }) {
-                            Icon(Icons.Rounded.Delete, contentDescription = "Delete")
+                            Icon(Icons.Rounded.Delete, contentDescription = stringResource(R.string.action_delete))
                         }
                     }
                 },
@@ -94,7 +96,7 @@ fun EditItemScreen(
                     .imePadding()
                     .padding(16.dp)
                     .heightIn(min = 56.dp),
-            ) { Text("Save") }
+            ) { Text(stringResource(R.string.edit_save)) }
         },
     ) { padding ->
         Column(
@@ -120,7 +122,7 @@ fun EditItemScreen(
 
             OutlinedTextField(
                 state = viewModel.name,
-                label = { Text("What is it?") },
+                label = { Text(stringResource(R.string.edit_name_label)) },
                 isError = viewModel.showErrors && viewModel.name.text.isBlank(),
                 lineLimits = TextFieldLineLimits.SingleLine,
                 modifier = Modifier.fillMaxWidth(),
@@ -128,8 +130,8 @@ fun EditItemScreen(
 
             OutlinedTextField(
                 state = viewModel.place,
-                label = { Text("Where did you put it?") },
-                placeholder = { Text("Top drawer, blue box") },
+                label = { Text(stringResource(R.string.edit_place_label)) },
+                placeholder = { Text(stringResource(R.string.edit_place_placeholder)) },
                 isError = viewModel.showErrors && viewModel.place.text.isBlank(),
                 lineLimits = TextFieldLineLimits.SingleLine,
                 modifier = Modifier.fillMaxWidth(),
@@ -148,7 +150,7 @@ fun EditItemScreen(
                 }
             }
 
-            Text("Search keywords", style = MaterialTheme.typography.labelLarge)
+            Text(stringResource(R.string.edit_keywords_title), style = MaterialTheme.typography.labelLarge)
             if (viewModel.tags.isNotEmpty()) {
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     viewModel.tags.forEach { tag ->
@@ -156,7 +158,7 @@ fun EditItemScreen(
                             selected = false,
                             onClick = { viewModel.removeTag(tag) },
                             label = { Text(tag) },
-                            trailingIcon = { Icon(Icons.Rounded.Close, contentDescription = "Remove $tag", Modifier.size(16.dp)) },
+                            trailingIcon = { Icon(Icons.Rounded.Close, contentDescription = stringResource(R.string.edit_remove_keyword, tag), Modifier.size(16.dp)) },
                         )
                     }
                 }
@@ -165,8 +167,8 @@ fun EditItemScreen(
             // Your own words for it: the AI can't know you call the passport case "travel wallet".
             OutlinedTextField(
                 state = viewModel.newTag,
-                label = { Text("Add a keyword") },
-                placeholder = { Text("e.g. travel wallet") },
+                label = { Text(stringResource(R.string.edit_add_keyword_label)) },
+                placeholder = { Text(stringResource(R.string.edit_add_keyword_placeholder)) },
                 lineLimits = TextFieldLineLimits.SingleLine,
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                 // Keep the keyboard open so several keywords can be added in a row.
@@ -174,7 +176,7 @@ fun EditItemScreen(
                 trailingIcon = {
                     if (viewModel.newTag.text.isNotBlank()) {
                         IconButton(onClick = viewModel::addTag) {
-                            Icon(Icons.Rounded.Add, contentDescription = "Add keyword")
+                            Icon(Icons.Rounded.Add, contentDescription = stringResource(R.string.edit_add_keyword))
                         }
                     }
                 },
@@ -184,18 +186,18 @@ fun EditItemScreen(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 OutlinedTextField(
                     state = viewModel.lentTo,
-                    label = { Text("Lent to (optional)") },
+                    label = { Text(stringResource(R.string.edit_lent_to_label)) },
                     lineLimits = TextFieldLineLimits.SingleLine,
                     modifier = Modifier.weight(1f),
                 )
                 if (viewModel.lentTo.text.isNotBlank()) {
-                    TextButton(onClick = viewModel::markReturned) { Text("Returned") }
+                    TextButton(onClick = viewModel::markReturned) { Text(stringResource(R.string.edit_returned)) }
                 }
             }
 
             OutlinedTextField(
                 state = viewModel.note,
-                label = { Text("Note (optional)") },
+                label = { Text(stringResource(R.string.edit_note_label)) },
                 lineLimits = TextFieldLineLimits.MultiLine(minHeightInLines = 2, maxHeightInLines = 5),
                 modifier = Modifier.fillMaxWidth(),
             )
@@ -208,20 +210,15 @@ fun EditItemScreen(
         AlertDialog(
             onDismissRequest = viewModel::dismissNanoPrompt,
             icon = { Icon(Icons.Rounded.AutoAwesome, contentDescription = null) },
-            title = { Text("Smarter suggestions?") },
+            title = { Text(stringResource(R.string.ai_nano_prompt_title)) },
             text = {
-                Text(
-                    "Stash can use Gemini Nano, Google's on-device AI, to name what's in your photos " +
-                        "and add better search keywords. It runs entirely on this phone: nothing is uploaded.\n\n" +
-                        "It's a large one-time download, handled by Android. Wi-Fi recommended.\n\n" +
-                        "Without it, Stash uses simpler built-in image labels.",
-                )
+                Text(stringResource(R.string.ai_nano_prompt_body))
             },
             confirmButton = {
-                TextButton(onClick = viewModel::acceptNano) { Text("Download") }
+                TextButton(onClick = viewModel::acceptNano) { Text(stringResource(R.string.ai_nano_prompt_download)) }
             },
             dismissButton = {
-                TextButton(onClick = viewModel::declineNano) { Text("No thanks") }
+                TextButton(onClick = viewModel::declineNano) { Text(stringResource(R.string.ai_nano_prompt_decline)) }
             },
         )
     }
@@ -229,15 +226,15 @@ fun EditItemScreen(
     if (confirmDelete) {
         AlertDialog(
             onDismissRequest = { confirmDelete = false },
-            title = { Text("Delete this item?") },
-            text = { Text("The photo and its location will be removed from this phone.") },
+            title = { Text(stringResource(R.string.edit_delete_title)) },
+            text = { Text(stringResource(R.string.edit_delete_body)) },
             confirmButton = {
                 TextButton(onClick = { confirmDelete = false; viewModel.delete(onDeleted = onDone) }) {
-                    Text("Delete")
+                    Text(stringResource(R.string.action_delete))
                 }
             },
             dismissButton = {
-                TextButton(onClick = { confirmDelete = false }) { Text("Cancel") }
+                TextButton(onClick = { confirmDelete = false }) { Text(stringResource(R.string.action_cancel)) }
             },
         )
     }
@@ -258,12 +255,12 @@ private fun AiStatus(state: AiState, nanoState: NanoState, onOfferNano: () -> Un
 private fun NanoHint(nanoState: NanoState, onOfferNano: () -> Unit) {
     when {
         nanoState == NanoState.DOWNLOADING -> Text(
-            "Gemini Nano is downloading. Suggestions get smarter once it's ready.",
+            stringResource(R.string.ai_nano_downloading),
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         canOfferNano(nanoState) -> TextButton(onClick = onOfferNano, contentPadding = PaddingValues(0.dp)) {
-            Text("Get smarter suggestions with Gemini Nano")
+            Text(stringResource(R.string.ai_nano_offer))
         }
     }
 }
@@ -273,7 +270,7 @@ private fun AiStatusLine(state: AiState) {
     when (state) {
         AiState.Idle -> Unit
         AiState.Thinking -> Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            Text("Recognizing on-device…", style = MaterialTheme.typography.labelMedium)
+            Text(stringResource(R.string.ai_thinking), style = MaterialTheme.typography.labelMedium)
             LinearProgressIndicator(Modifier.fillMaxWidth())
         }
         is AiState.Suggested -> Row(verticalAlignment = Alignment.CenterVertically) {
@@ -285,16 +282,18 @@ private fun AiStatusLine(state: AiState) {
             )
             Spacer(Modifier.size(6.dp))
             Text(
-                when (state.source) {
-                    TagSource.GEMINI_NANO -> "Suggested by Gemini Nano, on this phone"
-                    TagSource.MLKIT_LABELS -> "Suggested by on-device image labels"
-                },
+                stringResource(
+                    when (state.source) {
+                        TagSource.GEMINI_NANO -> R.string.ai_suggested_nano
+                        TagSource.MLKIT_LABELS -> R.string.ai_suggested_labels
+                    },
+                ),
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
         AiState.NoIdea -> Text(
-            "Couldn't recognize it. Just type what it is.",
+            stringResource(R.string.ai_no_idea),
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )

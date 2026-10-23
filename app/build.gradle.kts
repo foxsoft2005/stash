@@ -53,6 +53,12 @@ android {
     buildFeatures {
         compose = true
     }
+
+    // Lists the app's languages (from values-*/ folders) for Android 13+'s
+    // per-app language setting, so Stash can be Russian on an English phone.
+    androidResources {
+        generateLocaleConfig = true
+    }
 }
 
 // Room writes a JSON snapshot of every schema version here. Commit these files:

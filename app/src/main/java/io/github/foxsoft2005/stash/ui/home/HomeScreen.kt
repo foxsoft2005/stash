@@ -51,11 +51,14 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
+import io.github.foxsoft2005.stash.R
 import io.github.foxsoft2005.stash.data.Item
 
 @Composable
@@ -79,9 +82,10 @@ fun HomeScreen(
     )
 
     val message = backupViewModel.message
+    val resources = LocalContext.current.resources
     LaunchedEffect(message) {
         if (message != null) {
-            snackbar.showSnackbar(message, withDismissAction = true, duration = SnackbarDuration.Long)
+            snackbar.showSnackbar(message.resolve(resources), withDismissAction = true, duration = SnackbarDuration.Long)
             backupViewModel.messageShown()
         }
     }
@@ -114,7 +118,7 @@ fun HomeScreen(
             ExtendedFloatingActionButton(
                 onClick = onCapture,
                 icon = { Icon(Icons.Rounded.PhotoCamera, contentDescription = null) },
-                text = { Text("Stash it") },
+                text = { Text(stringResource(R.string.home_capture)) },
             )
         },
     ) { padding ->
@@ -146,12 +150,12 @@ fun HomeScreen(
                         FilterChip(
                             selected = !state.lentOnly,
                             onClick = { viewModel.setLentOnly(false) },
-                            label = { Text("All ${state.totalCount}") },
+                            label = { Text(stringResource(R.string.home_filter_all, state.totalCount)) },
                         )
                         FilterChip(
                             selected = state.lentOnly,
                             onClick = { viewModel.setLentOnly(true) },
-                            label = { Text("Lent out ${state.lentCount}") },
+                            label = { Text(stringResource(R.string.home_filter_lent, state.lentCount)) },
                         )
                     }
                 }
@@ -177,12 +181,12 @@ private fun WhereSearchField(
     TextField(
         state = viewModel.queryState,
         modifier = modifier,
-        placeholder = { Text("Where's my…?") },
+        placeholder = { Text(stringResource(R.string.home_search_placeholder)) },
         leadingIcon = { Icon(Icons.Rounded.Search, contentDescription = null) },
         trailingIcon = {
             if (showClear) {
                 IconButton(onClick = viewModel::clearQuery) {
-                    Icon(Icons.Rounded.Close, contentDescription = "Clear search")
+                    Icon(Icons.Rounded.Close, contentDescription = stringResource(R.string.home_clear_search))
                 }
             }
         },
@@ -210,14 +214,14 @@ private fun AnswerCard(query: String, best: Item?, onOpenItem: (Long) -> Unit) {
     ) {
         Column(Modifier.padding(20.dp)) {
             if (best == null) {
-                Text("Nothing matches “$query”", style = MaterialTheme.typography.titleMedium)
-                Text("Maybe it hasn't been stashed yet.", style = MaterialTheme.typography.bodyMedium)
+                Text(stringResource(R.string.home_no_match_title, query), style = MaterialTheme.typography.titleMedium)
+                Text(stringResource(R.string.home_no_match_body), style = MaterialTheme.typography.bodyMedium)
             } else {
                 Text(best.name, style = MaterialTheme.typography.labelLarge)
                 Spacer(Modifier.size(4.dp))
                 if (best.isLent) {
-                    Text("Lent to ${best.lentTo}", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.SemiBold)
-                    Text("Last stored in: ${best.place}", style = MaterialTheme.typography.bodyMedium)
+                    Text(stringResource(R.string.home_lent_to, best.lentTo.orEmpty()), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.SemiBold)
+                    Text(stringResource(R.string.home_last_stored_in, best.place), style = MaterialTheme.typography.bodyMedium)
                 } else {
                     Text(best.place, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.SemiBold)
                 }
@@ -246,7 +250,7 @@ private fun ItemCard(item: Item, onClick: () -> Unit) {
                 overflow = TextOverflow.Ellipsis,
             )
             MetaLine(Icons.Rounded.Place, item.place)
-            if (item.isLent) MetaLine(Icons.Rounded.Person, "Lent to ${item.lentTo}")
+            if (item.isLent) MetaLine(Icons.Rounded.Person, stringResource(R.string.home_lent_to, item.lentTo.orEmpty()))
         }
     }
 }
@@ -272,10 +276,10 @@ private fun EmptyState(modifier: Modifier = Modifier) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Icon(Icons.Rounded.Inventory2, contentDescription = null, modifier = Modifier.size(56.dp), tint = MaterialTheme.colorScheme.primary)
             Spacer(Modifier.size(16.dp))
-            Text("Nothing stashed yet", style = MaterialTheme.typography.titleLarge)
+            Text(stringResource(R.string.home_empty_title), style = MaterialTheme.typography.titleLarge)
             Spacer(Modifier.size(8.dp))
             Text(
-                "Snap a photo when you put something away. Months later, just ask “where's my passport?”",
+                stringResource(R.string.home_empty_body),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
