@@ -100,6 +100,8 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           NAME: ${{ steps.version.outputs.name }}
           CODE: ${{ steps.version.outputs.code }}
+          # Public fingerprint of the release key (also in README › Install).
+          RELEASE_CERT_SHA256: cb56a5796955715cf01eb4f1f1341d3b26f7e8e87dbaf677cf3744c207ceb491
         run: |
           apk=app/build/outputs/apk/release/app-release.apk
           if [ ! -f "$apk" ]; then
@@ -117,6 +119,12 @@ jobs:
             exit 1
           fi
           echo "Signing certificate SHA-256: $cert"
+          # Never publish an APK signed with anything but the real release key
+          # (e.g. the debug-key fallback if signing were misconfigured).
+          if [ "$cert" != "$RELEASE_CERT_SHA256" ]; then
+            echo "::error title=Wrong signing key::APK is signed with $cert, expected the release certificate $RELEASE_CERT_SHA256 (README › Install). Not publishing."
+            exit 1
+          fi
 
           out="stash-$NAME.apk"
           cp "$apk" "$out"

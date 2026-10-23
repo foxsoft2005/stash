@@ -9,7 +9,7 @@ plugins {
 // Release builds are signed in CI only (see .github/workflows/release.yml and
 // RELEASING.md). The keystore and its passwords come from environment variables
 // backed by GitHub secrets; they are never in the repo. Without them,
-// assembleRelease still works and produces an unsigned APK.
+// assembleRelease still works and signs with the debug key, for testing only.
 val releaseKeystore = providers.environmentVariable("STASH_KEYSTORE_PATH").orNull
 
 android {
@@ -40,8 +40,12 @@ android {
         release {
             isMinifyEnabled = true
             isShrinkResources = true
-            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"))
-            if (releaseKeystore != null) signingConfig = signingConfigs.getByName("release")
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            // Real releases: the release key (CI only). Everywhere else: the debug key, so
+            // the R8-shrunk build can still be installed and tested. Such APKs have a
+            // different signature, and release.yml refuses to publish anything that
+            // isn't signed with the real release certificate.
+            signingConfig = signingConfigs.getByName(if (releaseKeystore != null) "release" else "debug")
         }
     }
 
