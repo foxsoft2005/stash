@@ -53,11 +53,13 @@ An encrypted ZIP: `manifest.json` (items, with explicit stable JSON keys) plus `
 
 1. Open the folder in the latest stable Android Studio and let Gradle sync.
 2. Run on a device. The camera works on emulators, but Gemini Nano needs a supported phone (Pixel 9/10, Galaxy S24+ and others). On other devices the app automatically uses ML Kit labels.
-3. Run `./gradlew test` for the search unit tests.
+3. Run `./gradlew test` for the unit tests (search, tags, backup format, reminders, …).
 4. After any build, commit new files in `app/schemas/`. Room exports a JSON snapshot of each database version there, and migrations are checked against them.
 
+### CI
+Every pull request and push to `main` runs **Android CI** (`.github/workflows/android.yml`): debug build, unit tests, lint, and a check that `app/schemas/` is committed after database changes. Each run attaches the debug APK (*Summary → Artifacts*) for installing on a phone with `adb install -r app-debug.apk`, plus test and lint reports.
+
 ### Notes and caveats
-- This code **hasn't been compiled yet**: the environment it was written in couldn't reach Google's Maven repository. Versions come from the official release pages as of 25 Sept 2026, and the code follows those libraries' documented APIs. Expect at most a few small fixes on first sync (most likely around the Room 3 builder or ML Kit GenAI beta signatures).
 - The ML Kit GenAI Prompt API is in **beta** (`1.0.0-beta4`), so its API can change.
 - If a Compose library asks for a newer `compileSdk` minor version (37.1), bump it in `app/build.gradle.kts`.
 
