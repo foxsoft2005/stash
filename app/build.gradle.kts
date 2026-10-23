@@ -7,11 +7,11 @@ plugins {
 }
 
 android {
-    namespace = "dev.stash.app"
+    namespace = "com.foxsoft2005.stash.app"
     compileSdk = 37
 
     defaultConfig {
-        applicationId = "dev.stash.app"
+        applicationId = "com.foxsoft2005.stash.app"
         minSdk = 26          // ML Kit GenAI Prompt API requires API 26+
         targetSdk = 37
         versionCode = 1
