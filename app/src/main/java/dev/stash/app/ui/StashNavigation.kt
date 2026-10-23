@@ -47,7 +47,7 @@ fun StashNavigation(startWithCamera: Boolean) {
         entryProvider = entryProvider {
             entry<HomeRoute> {
                 HomeScreen(
-                    viewModel = viewModel { HomeViewModel(container.repository) },
+                    viewModel = viewModel { HomeViewModel(container.repository, container.backupStatus) },
                     backupViewModel = viewModel { BackupViewModel(container.backup) },
                     onCapture = { backStack.add(CaptureRoute) },
                     onOpenItem = { id -> backStack.add(EditRoute(itemId = id)) },

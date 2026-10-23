@@ -25,6 +25,7 @@ class BackupManager(
     context: Context,
     private val dao: ItemDao,
     private val photos: PhotoStore,
+    private val status: BackupStatusStore,
 ) {
     private val appContext = context.applicationContext
     private val resolver = appContext.contentResolver
@@ -42,6 +43,7 @@ class BackupManager(
         // "wt" = write + truncate, so overwriting an older backup can't leave its tail behind.
         val out = resolver.openOutputStream(target, "wt") ?: throw FileNotFoundException(target.toString())
         BackupFile.write(out.buffered(), password, manifest, photoFiles) // closes the stream
+        status.markBackedUp(manifest.exportedAt) // only after the file is complete
         ExportResult(items = items.size, photos = photoFiles.size)
     }
 

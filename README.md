@@ -10,7 +10,7 @@ Everything stays on the phone. There's no account, no server, and no `INTERNET` 
 2. **On-device AI tags the photo while you type.** Gemini Nano (multimodal, through the ML Kit GenAI Prompt API) names the object and adds synonyms as tags, for example *passport → document, travel, id*. Phones without Nano fall back to ML Kit's bundled image-labeling model. Nano is a large download, so Stash asks once, at the first photo; if you say no it keeps using the image labels, and you can still turn Nano on later from the edit screen ("Get smarter suggestions with Gemini Nano").
 3. **Ask in plain words.** Search accepts natural questions in English or Russian, ignores filler words, and tolerates plural and case endings (keys/key, паспорта/паспорт). The best match is shown as a big answer card.
 4. **Lending.** Enter who borrowed an item, then use the **Lent out** filter to see everything that's out. Searching "what did Mark borrow" also works.
-5. **Encrypted backup.** **⋮ › Back up…** saves every item and photo into one password-protected `.stash` file, wherever you choose in the system file picker (Downloads, a USB stick, a cloud drive app). **⋮ › Restore…** merges a backup back in: new items are added, nothing already on the phone is changed or deleted, and restoring the same file twice is harmless. A forgotten password can't be recovered.
+5. **Encrypted backup.** **⋮ › Back up…** saves every item and photo into one password-protected `.stash` file, wherever you choose in the system file picker (Downloads, a USB stick, a cloud drive app). **⋮ › Restore…** merges a backup back in: new items are added, nothing already on the phone is changed or deleted, and restoring the same file twice is harmless. A forgotten password can't be recovered. A card on the home screen suggests a backup once the stash is worth keeping (5+ items, or a week after the first) and again when the last backup is 30+ days old and something changed; **Later** hides it for a week.
 
 ## Stack (current as of Sept 2026)
 
@@ -66,4 +66,3 @@ An encrypted ZIP: `manifest.json` (items, with explicit stable JSON keys) plus `
 - **Home-screen widget** (Glance) with a one-tap camera button and a search box.
 - **Rooms and containers** as a hierarchy (House › Bedroom › Wardrobe › Blue box).
 - **Semantic search** with on-device text embeddings, so "ID documents" finds "passport" even without matching tags.
-- **Backup reminders**: a gentle nudge when the last backup is old (the app can't back up by itself without a destination the user picked).

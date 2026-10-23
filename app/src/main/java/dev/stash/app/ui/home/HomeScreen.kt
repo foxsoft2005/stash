@@ -131,6 +131,16 @@ fun HomeScreen(
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
+                val reminder = state.backupReminder
+                if (reminder != null && !state.isSearching) {
+                    item(span = { GridItemSpan(maxLineSpan) }, key = "backup-reminder") {
+                        BackupReminderCard(
+                            reminder = reminder,
+                            onBackUp = backupViewModel::startExport,
+                            onLater = viewModel::snoozeBackupReminder,
+                        )
+                    }
+                }
                 item(span = { GridItemSpan(maxLineSpan) }) {
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         FilterChip(
