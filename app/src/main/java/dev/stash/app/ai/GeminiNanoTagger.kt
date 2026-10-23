@@ -10,6 +10,7 @@ import com.google.mlkit.genai.prompt.TextPart
 import com.google.mlkit.genai.prompt.generateContentRequest
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import kotlin.coroutines.cancellation.CancellationException
 
 /**
  * Multimodal Gemini Nano through the ML Kit GenAI Prompt API (runs in AICore, on-device).
@@ -40,6 +41,8 @@ class GeminiNanoTagger {
                 // DOWNLOADING: AICore is already fetching it; UNAVAILABLE: unsupported device.
                 else -> Unit
             }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Log.w(TAG, "Gemini Nano not available", e)
         }
