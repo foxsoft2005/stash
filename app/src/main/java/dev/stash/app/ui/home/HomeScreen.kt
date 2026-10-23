@@ -1,5 +1,7 @@
 package dev.stash.app.ui.home
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -33,11 +35,16 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -54,19 +61,55 @@ import dev.stash.app.data.Item
 @Composable
 fun HomeScreen(
     viewModel: HomeViewModel,
+    backupViewModel: BackupViewModel,
     onCapture: () -> Unit,
     onOpenItem: (Long) -> Unit,
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val snackbar = remember { SnackbarHostState() }
+
+    // System file pickers: the user decides where backups live.
+    val saveBackup = rememberLauncherForActivityResult(
+        ActivityResultContracts.CreateDocument("application/octet-stream"),
+        backupViewModel::exportTo,
+    )
+    val openBackup = rememberLauncherForActivityResult(
+        ActivityResultContracts.OpenDocument(),
+        backupViewModel::restoreFrom,
+    )
+
+    val message = backupViewModel.message
+    LaunchedEffect(message) {
+        if (message != null) {
+            snackbar.showSnackbar(message, withDismissAction = true, duration = SnackbarDuration.Long)
+            backupViewModel.messageShown()
+        }
+    }
+
+    BackupDialogs(backupViewModel, onChooseExportFile = { name -> saveBackup.launch(name) })
 
     Scaffold(
         topBar = {
-            WhereSearchField(
-                viewModel = viewModel,
-                showClear = state.isSearching,
-                modifier = Modifier.fillMaxWidth(),
-            )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .statusBarsPadding()
+                    .padding(start = 16.dp, end = 4.dp, top = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                WhereSearchField(
+                    viewModel = viewModel,
+                    showClear = state.isSearching,
+                    modifier = Modifier.weight(1f),
+                )
+                BackupMenu(
+                    onBackUp = backupViewModel::startExport,
+                    // .stash has no registered MIME type, so pickers usually report octet-stream.
+                    onRestore = { openBackup.launch(arrayOf("application/octet-stream", "*/*")) },
+                )
+            }
         },
+        snackbarHost = { SnackbarHost(snackbar) },
         floatingActionButton = {
             ExtendedFloatingActionButton(
                 onClick = onCapture,
@@ -123,10 +166,7 @@ private fun WhereSearchField(
 ) {
     TextField(
         state = viewModel.queryState,
-        modifier = modifier
-            .statusBarsPadding()
-            .padding(horizontal = 16.dp)
-            .padding(top = 8.dp),
+        modifier = modifier,
         placeholder = { Text("Where's my…?") },
         leadingIcon = { Icon(Icons.Rounded.Search, contentDescription = null) },
         trailingIcon = {

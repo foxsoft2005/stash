@@ -14,6 +14,7 @@ import dev.stash.app.ui.capture.CaptureScreen
 import dev.stash.app.ui.capture.CaptureViewModel
 import dev.stash.app.ui.edit.EditItemScreen
 import dev.stash.app.ui.edit.EditItemViewModel
+import dev.stash.app.ui.home.BackupViewModel
 import dev.stash.app.ui.home.HomeScreen
 import dev.stash.app.ui.home.HomeViewModel
 import kotlinx.serialization.Serializable
@@ -47,6 +48,7 @@ fun StashNavigation(startWithCamera: Boolean) {
             entry<HomeRoute> {
                 HomeScreen(
                     viewModel = viewModel { HomeViewModel(container.repository) },
+                    backupViewModel = viewModel { BackupViewModel(container.backup) },
                     onCapture = { backStack.add(CaptureRoute) },
                     onOpenItem = { id -> backStack.add(EditRoute(itemId = id)) },
                 )

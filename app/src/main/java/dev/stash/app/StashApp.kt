@@ -9,6 +9,7 @@ import dev.stash.app.ai.SmartTagger
 import dev.stash.app.data.ItemRepository
 import dev.stash.app.data.PhotoStore
 import dev.stash.app.data.StashDatabase
+import dev.stash.app.data.backup.BackupManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -32,6 +33,7 @@ class AppContainer(context: Context) {
     val photos = PhotoStore(context)
     private val database = StashDatabase.create(context)
     val repository = ItemRepository(database.itemDao(), photos)
+    val backup = BackupManager(context, database.itemDao(), photos)
 
     val tagger = SmartTagger(
         nano = GeminiNanoTagger(),
