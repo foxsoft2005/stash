@@ -19,7 +19,7 @@ before disclosing it publicly; you'll be credited unless you'd rather not be.
 
 Especially interesting:
 
-- **Backup files** (`.stash`, see `app/src/main/java/dev/stash/app/data/backup/`
+- **Backup files** (`.stash`, see `app/src/main/java/io/github/foxsoft2005/stash/data/backup/`
   and the format notes in the README): recovering contents without the password,
   forging or modifying a backup that restores without error, crafted files that
   write outside the app's storage, crash or exhaust the phone on restore.

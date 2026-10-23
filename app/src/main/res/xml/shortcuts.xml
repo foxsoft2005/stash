@@ -7,8 +7,8 @@
         android:shortcutShortLabel="@string/shortcut_capture_short"
         android:shortcutLongLabel="@string/shortcut_capture_long">
         <intent
-            android:action="dev.stash.app.action.CAPTURE"
-            android:targetPackage="dev.stash.app"
-            android:targetClass="dev.stash.app.MainActivity" />
+            android:action="io.github.foxsoft2005.stash.action.CAPTURE"
+            android:targetPackage="io.github.foxsoft2005.stash"
+            android:targetClass="io.github.foxsoft2005.stash.MainActivity" />
     </shortcut>
 </shortcuts>
