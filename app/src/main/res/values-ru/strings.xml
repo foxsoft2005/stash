@@ -58,6 +58,33 @@
         <item quantity="other">Место объединится с «%2$s», где уже есть %1$d вещи.</item>
     </plurals>
 
+    <!-- «Всё ещё там?»: проверка давно не тронутых вещей -->
+    <plurals name="checkin_card_title">
+        <item quantity="one">%d вещь не проверялась больше года</item>
+        <item quantity="few">%d вещи не проверялись больше года</item>
+        <item quantity="many">%d вещей не проверялись больше года</item>
+        <item quantity="other">%d вещи не проверялись больше года</item>
+    </plurals>
+    <string name="checkin_card_body">Они всё ещё там, где указано? Быстрая проверка сохранит ответы точными.</string>
+    <string name="checkin_review">Проверить</string>
+    <string name="checkin_title">Всё ещё там?</string>
+    <string name="checkin_progress">%1$d из %2$d</string>
+    <plurals name="checkin_last_seen">
+        <item quantity="one">Не менялась и не проверялась %d месяц.</item>
+        <item quantity="few">Не менялась и не проверялась %d месяца.</item>
+        <item quantity="many">Не менялась и не проверялась %d месяцев.</item>
+        <item quantity="other">Не менялась и не проверялась %d месяца.</item>
+    </plurals>
+    <string name="checkin_still_there">Всё ещё там</string>
+    <string name="checkin_moved">Переложили…</string>
+    <string name="checkin_gone">Больше нет</string>
+    <string name="checkin_skip">Пропустить</string>
+    <string name="checkin_moved_title">Где теперь «%1$s»?</string>
+    <string name="checkin_gone_done">Удалено: «%1$s»</string>
+    <string name="checkin_done_title">Всё проверено</string>
+    <string name="checkin_done_body">Спасибо! Через год Stash спросит про эти вещи снова.</string>
+    <string name="checkin_done_action">Готово</string>
+
     <!-- Выбор нескольких вещей (долгое нажатие на карточку) -->
     <plurals name="selection_count">
         <item quantity="one">Выбрано: %d</item>

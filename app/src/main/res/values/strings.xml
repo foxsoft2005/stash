@@ -56,6 +56,29 @@
         <item quantity="other">This joins “%2$s”, which already has %1$d items.</item>
     </plurals>
 
+    <!-- "Still there?" check-ins -->
+    <plurals name="checkin_card_title">
+        <item quantity="one">%d item not checked for a year</item>
+        <item quantity="other">%d items not checked for a year</item>
+    </plurals>
+    <string name="checkin_card_body">Are they still where Stash says? A quick check keeps the answers right.</string>
+    <string name="checkin_review">Review</string>
+    <string name="checkin_title">Still there?</string>
+    <string name="checkin_progress">%1$d of %2$d</string>
+    <plurals name="checkin_last_seen">
+        <item quantity="one">Not changed or checked for %d month.</item>
+        <item quantity="other">Not changed or checked for %d months.</item>
+    </plurals>
+    <string name="checkin_still_there">Still there</string>
+    <string name="checkin_moved">Moved…</string>
+    <string name="checkin_gone">Gone</string>
+    <string name="checkin_skip">Skip</string>
+    <string name="checkin_moved_title">Where is “%1$s” now?</string>
+    <string name="checkin_gone_done">“%1$s” deleted</string>
+    <string name="checkin_done_title">All checked</string>
+    <string name="checkin_done_body">Thanks! Stash will ask about these again in a year.</string>
+    <string name="checkin_done_action">Done</string>
+
     <!-- Batch mode (long-press a card) -->
     <plurals name="selection_count">
         <item quantity="one">%d selected</item>

@@ -65,6 +65,7 @@ class BackupArchiveTest {
         assertTrue(json, json.contains("\"lentTo\":\"Mark\""))
         assertTrue(json, json.contains("\"photo\":null"))
         assertTrue(json, json.contains("\"placePhoto\":null"))
+        assertTrue(json, json.contains("\"checkedAt\":null"))
         assertEquals(listOf(drill), BackupArchive.decode(json).items)
     }
 
@@ -121,7 +122,7 @@ class BackupArchiveTest {
         val item = Item(
             id = 77, name = "Spare keys", place = "Kitchen jar", tags = "key,house keys", note = "blue tag",
             photoPath = "/data/x/photos/a.jpg", lentTo = "Anna", createdAt = 10, updatedAt = 20,
-            placePhotoPath = "/data/x/photos/p.jpg",
+            placePhotoPath = "/data/x/photos/p.jpg", checkedAt = 15,
         )
         val restored = item.toBackupItem("photos/a.jpg", "photos/p.jpg").toItem("/data/y/photos/b.jpg", "/data/y/photos/q.jpg")
         assertEquals(item.copy(id = 0, photoPath = "/data/y/photos/b.jpg", placePhotoPath = "/data/y/photos/q.jpg"), restored)

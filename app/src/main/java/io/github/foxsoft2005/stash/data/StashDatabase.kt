@@ -17,10 +17,14 @@ import kotlinx.coroutines.Dispatchers
  */
 @Database(
     entities = [Item::class],
-    version = 3,
+    version = 4,
     exportSchema = true,
-    // v3 adds items.placePhotoPath (nullable, so existing rows simply have none).
-    autoMigrations = [AutoMigration(from = 2, to = 3)],
+    autoMigrations = [
+        // v3 adds items.placePhotoPath (nullable, so existing rows simply have none).
+        AutoMigration(from = 2, to = 3),
+        // v4 adds items.checkedAt (nullable: nothing has been confirmed yet).
+        AutoMigration(from = 3, to = 4),
+    ],
 )
 abstract class StashDatabase : RoomDatabase() {
 

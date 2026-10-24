@@ -13,6 +13,7 @@ import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.long
+import kotlinx.serialization.json.longOrNull
 import kotlinx.serialization.json.put
 import java.io.ByteArrayOutputStream
 import java.io.File
@@ -37,6 +38,8 @@ data class BackupItem(
     val updatedAt: Long,
     val photo: String?,
     val placePhoto: String? = null,
+    /** Last "still there" confirmation. Optional, and harmless to lose (the item is just asked about again). */
+    val checkedAt: Long? = null,
 )
 
 data class BackupManifest(
@@ -153,6 +156,7 @@ object BackupArchive {
                                 put("updatedAt", item.updatedAt)
                                 put("photo", item.photo?.let(::JsonPrimitive) ?: JsonNull)
                                 put("placePhoto", item.placePhoto?.let(::JsonPrimitive) ?: JsonNull)
+                                put("checkedAt", item.checkedAt?.let(::JsonPrimitive) ?: JsonNull)
                             },
                         )
                     }
@@ -179,6 +183,7 @@ object BackupArchive {
                     updatedAt = o["updatedAt"]?.jsonPrimitive?.long ?: 0L,
                     photo = str("photo")?.takeIf(photoEntry::matches),
                     placePhoto = str("placePhoto")?.takeIf(photoEntry::matches), // absent in format 1
+                    checkedAt = o["checkedAt"]?.jsonPrimitive?.longOrNull, // absent before beta.4
                 )
             }.filter { it.name.isNotBlank() }
             return BackupManifest(

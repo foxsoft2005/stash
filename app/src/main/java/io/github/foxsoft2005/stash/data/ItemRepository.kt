@@ -46,6 +46,9 @@ class ItemRepository(
     suspend fun renamePlace(fromKey: String, newName: String): Int =
         moveTo(dao.getAll().filter { Places.contains(fromKey, it) }, newName)
 
+    /** "Still there?" → yes. Doesn't change the item, so it keeps its place in "Recently changed". */
+    suspend fun confirmStillThere(item: Item) = dao.setCheckedAt(item.id, System.currentTimeMillis())
+
     /** Clears "lent to" on each item that has it. Returns how many changed. */
     suspend fun markReturned(items: List<Item>): Int {
         val lent = items.filter { it.isLent }
