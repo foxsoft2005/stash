@@ -24,6 +24,20 @@ class ItemRepository(
         photos.delete(item.photoPath)
     }
 
+    /** Batch delete: rows in one statement, then their photos. */
+    suspend fun deleteAll(items: List<Item>) {
+        if (items.isEmpty()) return
+        dao.deleteAll(items.map { it.id })
+        items.forEach { photos.delete(it.photoPath) }
+    }
+
+    /** Clears "lent to" on each item that has it. Returns how many changed. */
+    suspend fun markReturned(items: List<Item>): Int {
+        val lent = items.filter { it.isLent }
+        lent.forEach { save(it.copy(lentTo = null)) }
+        return lent.size
+    }
+
     private companion object {
         const val RECENT_PLACES_OVERFETCH = 5
     }

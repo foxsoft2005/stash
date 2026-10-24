@@ -1,7 +1,11 @@
 package io.github.foxsoft2005.stash.ui.home
 
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.border
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,9 +22,15 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.input.TextFieldLineLimits
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.AssignmentReturn
+import androidx.compose.material.icons.rounded.CheckCircle
+import androidx.compose.material.icons.rounded.Delete
+import androidx.compose.material.icons.rounded.RadioButtonUnchecked
+import androidx.compose.material.icons.rounded.SelectAll
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Inventory2
 import androidx.compose.material.icons.rounded.Person
@@ -29,6 +39,7 @@ import androidx.compose.material.icons.rounded.Place
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
@@ -38,9 +49,12 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -50,9 +64,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalResources
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -90,11 +109,48 @@ fun HomeScreen(
         }
     }
 
+    val homeMessage = viewModel.message
+    LaunchedEffect(homeMessage) {
+        if (homeMessage != null) {
+            snackbar.showSnackbar(homeMessage.resolve(resources), withDismissAction = true)
+            viewModel.messageShown()
+        }
+    }
+
+    // "Deleted 3 items · Undo": the delete only becomes final when this goes away.
+    val pending = state.pendingDeletion
+    LaunchedEffect(pending?.token) {
+        if (pending != null) {
+            val result = snackbar.showSnackbar(
+                message = resources.getQuantityString(R.plurals.selection_deleted, pending.items.size, pending.items.size),
+                actionLabel = resources.getString(R.string.action_undo),
+                withDismissAction = true,
+                duration = SnackbarDuration.Long,
+            )
+            if (result == SnackbarResult.ActionPerformed) {
+                viewModel.undoDelete(pending.token)
+            } else {
+                viewModel.confirmDelete(pending.token)
+            }
+        }
+    }
+
+    BackHandler(enabled = state.isSelecting, onBack = viewModel::clearSelection)
+
     BackupDialogs(backupViewModel, onChooseExportFile = { name -> saveBackup.launch(name) })
 
     Scaffold(
         topBar = {
-            Row(
+            if (state.isSelecting) {
+                SelectionBar(
+                    count = state.selected.size,
+                    canMarkReturned = state.anySelectedLent,
+                    onCancel = viewModel::clearSelection,
+                    onSelectAll = viewModel::selectAll,
+                    onMarkReturned = viewModel::markSelectedReturned,
+                    onDelete = viewModel::deleteSelected,
+                )
+            } else Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .statusBarsPadding()
@@ -115,7 +171,7 @@ fun HomeScreen(
         },
         snackbarHost = { SnackbarHost(snackbar) },
         floatingActionButton = {
-            ExtendedFloatingActionButton(
+            if (!state.isSelecting) ExtendedFloatingActionButton(
                 onClick = onCapture,
                 icon = { Icon(Icons.Rounded.PhotoCamera, contentDescription = null) },
                 text = { Text(stringResource(R.string.home_capture)) },
@@ -164,8 +220,15 @@ fun HomeScreen(
                         AnswerCard(query = state.query, best = state.bestMatch, onOpenItem = onOpenItem)
                     }
                 }
+                val selectedIds = state.selectedIds
                 items(state.items, key = { it.id }) { item ->
-                    ItemCard(item = item, onClick = { onOpenItem(item.id) })
+                    ItemCard(
+                        item = item,
+                        selecting = state.isSelecting,
+                        selected = item.id in selectedIds,
+                        onClick = { if (!viewModel.onItemClick(item.id)) onOpenItem(item.id) },
+                        onLongClick = { viewModel.onItemLongPress(item.id) },
+                    )
                 }
             }
         }
@@ -230,18 +293,95 @@ private fun AnswerCard(query: String, best: Item?, onOpenItem: (Long) -> Unit) {
     }
 }
 
+/** Batch mode's top bar: "3 selected" and the actions for them. */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun ItemCard(item: Item, onClick: () -> Unit) {
-    Card(onClick = onClick) {
-        AsyncImage(
-            model = item.photoPath,
-            contentDescription = item.name,
-            contentScale = ContentScale.Crop,
-            modifier = Modifier
-                .fillMaxWidth()
-                .aspectRatio(1f)
-                .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)),
-        )
+private fun SelectionBar(
+    count: Int,
+    canMarkReturned: Boolean,
+    onCancel: () -> Unit,
+    onSelectAll: () -> Unit,
+    onMarkReturned: () -> Unit,
+    onDelete: () -> Unit,
+) {
+    TopAppBar(
+        navigationIcon = {
+            IconButton(onClick = onCancel) {
+                Icon(Icons.Rounded.Close, contentDescription = stringResource(R.string.selection_cancel))
+            }
+        },
+        title = { Text(pluralStringResource(R.plurals.selection_count, count, count)) },
+        actions = {
+            IconButton(onClick = onSelectAll) {
+                Icon(Icons.Rounded.SelectAll, contentDescription = stringResource(R.string.selection_select_all))
+            }
+            if (canMarkReturned) {
+                IconButton(onClick = onMarkReturned) {
+                    Icon(
+                        Icons.AutoMirrored.Rounded.AssignmentReturn,
+                        contentDescription = stringResource(R.string.selection_mark_returned),
+                    )
+                }
+            }
+            IconButton(onClick = onDelete) {
+                Icon(Icons.Rounded.Delete, contentDescription = stringResource(R.string.selection_delete))
+            }
+        },
+    )
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+private fun ItemCard(
+    item: Item,
+    selecting: Boolean,
+    selected: Boolean,
+    onClick: () -> Unit,
+    onLongClick: () -> Unit,
+) {
+    val haptics = LocalHapticFeedback.current
+    val shape = CardDefaults.shape
+    Card(
+        modifier = Modifier
+            .then(if (selected) Modifier.border(3.dp, MaterialTheme.colorScheme.primary, shape) else Modifier)
+            .clip(shape)
+            .combinedClickable(
+                onClick = onClick,
+                onLongClick = {
+                    haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                    onLongClick()
+                },
+                onLongClickLabel = stringResource(R.string.selection_select),
+            )
+            .then(if (selecting) Modifier.semantics { this.selected = selected } else Modifier),
+    ) {
+        Box {
+            AsyncImage(
+                model = item.photoPath,
+                contentDescription = item.name,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .aspectRatio(1f)
+                    .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)),
+            )
+            if (selecting) {
+                Surface(
+                    shape = CircleShape,
+                    color = MaterialTheme.colorScheme.surface.copy(alpha = 0.85f),
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(8.dp),
+                ) {
+                    Icon(
+                        if (selected) Icons.Rounded.CheckCircle else Icons.Rounded.RadioButtonUnchecked,
+                        contentDescription = null, // state is announced via semantics { selected }
+                        tint = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(28.dp),
+                    )
+                }
+            }
+        }
         Column(Modifier.padding(12.dp)) {
             Text(
                 item.name,
