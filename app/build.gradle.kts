@@ -125,4 +125,9 @@ dependencies {
     // On-device tests only; nothing here goes into the app.
     androidTestImplementation(libs.androidx.test.runner)
     androidTestImplementation(libs.androidx.test.ext.junit)
+    // Compose UI tests (layout checks); versions come from the Compose BOM.
+    androidTestImplementation(platform(libs.androidx.compose.bom))
+    androidTestImplementation(libs.androidx.compose.ui.test.junit4)
+    // Adds an empty test activity to the *debug* manifest only; release builds are unaffected.
+    debugImplementation(libs.androidx.compose.ui.test.manifest)
 }

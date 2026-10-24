@@ -6,11 +6,11 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.border
 import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -42,6 +42,7 @@ import androidx.compose.material.icons.rounded.PhotoCamera
 import androidx.compose.material.icons.rounded.Place
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.AssistChip
+import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -78,6 +79,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -227,37 +229,19 @@ fun HomeScreen(
                     }
                 }
                 item(span = { GridItemSpan(maxLineSpan) }) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        // Scrolls sideways if long labels (or big fonts) don't fit; the sort button stays put.
-                        Row(
-                            modifier = Modifier
-                                .weight(1f)
-                                .horizontalScroll(rememberScrollState()),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            FilterChip(
-                                selected = !state.lentOnly,
-                                onClick = { viewModel.setLentOnly(false) },
-                                label = { Text(stringResource(R.string.home_filter_all, state.scopeCount)) },
-                            )
-                            FilterChip(
-                                selected = state.lentOnly,
-                                onClick = { viewModel.setLentOnly(true) },
-                                label = { Text(stringResource(R.string.home_filter_lent, state.lentCount)) },
-                            )
-                            AssistChip(
-                                onClick = onOpenPlaces,
-                                label = { Text(stringResource(R.string.places_title)) },
-                                leadingIcon = { Icon(Icons.Rounded.Place, contentDescription = null, modifier = Modifier.size(18.dp)) },
-                            )
-                        }
+                    HomeFilterRow(
+                        allLabel = stringResource(R.string.home_filter_all, state.scopeCount),
+                        lentLabel = stringResource(R.string.home_filter_lent, state.lentCount),
+                        placesLabel = stringResource(R.string.places_title),
+                        lentOnly = state.lentOnly,
+                        onAll = { viewModel.setLentOnly(false) },
+                        onLentOnly = { viewModel.setLentOnly(true) },
+                        onPlaces = onOpenPlaces,
                         // Search results are ordered by relevance, so sorting only applies when not searching.
-                        if (!state.isSearching) SortMenu(current = state.sort, onSelect = viewModel::setSort)
-                    }
+                        sortButton = if (state.isSearching) null else {
+                            { SortMenu(current = state.sort, onSelect = viewModel::setSort) }
+                        },
+                    )
                 }
                 if (place != null && state.scopeCount == 0) {
                     item(span = { GridItemSpan(maxLineSpan) }, key = "place-empty") {
@@ -343,6 +327,63 @@ private fun AnswerCard(query: String, best: Item?, onOpenItem: (Long) -> Unit) {
                     Text(best.place, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.SemiBold)
                 }
             }
+        }
+    }
+}
+
+/** Test tags for [HomeFilterRow] (used by the on-device layout test). */
+internal object HomeFilterTags {
+    const val ALL = "filter-all"
+    const val LENT = "filter-lent"
+    const val PLACES = "filter-places"
+    const val SORT = "filter-sort"
+}
+
+/**
+ * All · Lent out · Places, with the sort button pinned top-right. The chips wrap
+ * onto a second line when they don't fit (longer translations, large fonts,
+ * narrow phones) instead of running under the sort button.
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+internal fun HomeFilterRow(
+    allLabel: String,
+    lentLabel: String,
+    placesLabel: String,
+    lentOnly: Boolean,
+    onAll: () -> Unit,
+    onLentOnly: () -> Unit,
+    onPlaces: () -> Unit,
+    sortButton: (@Composable () -> Unit)?,
+    modifier: Modifier = Modifier,
+) {
+    Row(modifier.fillMaxWidth(), verticalAlignment = Alignment.Top) {
+        FlowRow(
+            modifier = Modifier.weight(1f),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            itemVerticalAlignment = Alignment.CenterVertically,
+        ) {
+            FilterChip(
+                selected = !lentOnly,
+                onClick = onAll,
+                label = { Text(allLabel, maxLines = 1) },
+                modifier = Modifier.testTag(HomeFilterTags.ALL),
+            )
+            FilterChip(
+                selected = lentOnly,
+                onClick = onLentOnly,
+                label = { Text(lentLabel, maxLines = 1) },
+                modifier = Modifier.testTag(HomeFilterTags.LENT),
+            )
+            AssistChip(
+                onClick = onPlaces,
+                label = { Text(placesLabel, maxLines = 1) },
+                leadingIcon = { Icon(Icons.Rounded.Place, contentDescription = null, modifier = Modifier.size(AssistChipDefaults.IconSize)) },
+                modifier = Modifier.testTag(HomeFilterTags.PLACES),
+            )
+        }
+        if (sortButton != null) {
+            Box(Modifier.testTag(HomeFilterTags.SORT)) { sortButton() }
         }
     }
 }
