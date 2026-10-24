@@ -93,6 +93,7 @@
     <string name="capture_allow_camera">Allow camera</string>
     <string name="capture_open_settings">Open settings</string>
     <string name="capture_close">Close camera</string>
+    <string name="capture_place_hint">Photograph where it is: the shelf, box or drawer</string>
     <string name="capture_failed">Couldn\'t take the photo. Try again.</string>
 
     <!-- New / edit item -->
@@ -102,6 +103,10 @@
     <string name="edit_name_label">What is it?</string>
     <string name="edit_place_label">Where did you put it?</string>
     <string name="edit_place_placeholder">Top drawer, blue box</string>
+    <string name="edit_place_photo_add">Add a photo of where it is</string>
+    <string name="edit_place_photo_title">Where it is</string>
+    <string name="edit_place_photo_retake">Retake photo of where it is</string>
+    <string name="edit_place_photo_remove">Remove photo of where it is</string>
     <string name="edit_keywords_title">Search keywords</string>
     <string name="edit_remove_keyword">Remove %1$s</string>
     <string name="edit_add_keyword_label">Add a keyword</string>

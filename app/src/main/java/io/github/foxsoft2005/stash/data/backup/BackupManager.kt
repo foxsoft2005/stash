@@ -33,11 +33,12 @@ class BackupManager(
     suspend fun export(target: Uri, password: CharArray): ExportResult = withContext(Dispatchers.IO) {
         val items = dao.getAll()
         val photoFiles = linkedMapOf<String, File>()
+        fun entryFor(path: String?): String? {
+            val photo = photos.existing(path) ?: return null
+            return BackupArchive.photoEntryName(photo).also { photoFiles[it] = photo }
+        }
         val backupItems = items.map { item ->
-            val photo = photos.existing(item.photoPath)
-            val entry = photo?.let(BackupArchive::photoEntryName)
-            if (entry != null) photoFiles[entry] = photo
-            item.toBackupItem(entry)
+            item.toBackupItem(entryFor(item.photoPath), entryFor(item.placePhotoPath))
         }
         val manifest = BackupManifest(exportedAt = System.currentTimeMillis(), items = backupItems)
         // "wt" = write + truncate, so overwriting an older backup can't leave its tail behind.
@@ -63,8 +64,8 @@ class BackupManager(
 
             val toAdd = BackupMerge.itemsToAdd(dao.getAll(), contents.manifest.items)
             for (item in toAdd) {
-                val photoPath = item.photo?.let(contents.photos::get)?.let { photos.adopt(it).absolutePath }
-                dao.upsert(item.toItem(photoPath))
+                suspend fun adopt(entry: String?) = entry?.let(contents.photos::get)?.let { photos.adopt(it).absolutePath }
+                dao.upsert(item.toItem(adopt(item.photo), adopt(item.placePhoto)))
             }
             RestoreResult(added = toAdd.size, alreadyOnPhone = contents.manifest.items.size - toAdd.size)
         } finally {

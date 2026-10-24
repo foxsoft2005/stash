@@ -334,19 +334,32 @@ private fun AnswerCard(query: String, best: Item?, onOpenItem: (Long) -> Unit) {
         ),
         modifier = Modifier.fillMaxWidth(),
     ) {
-        Column(Modifier.padding(20.dp)) {
-            if (best == null) {
-                Text(stringResource(R.string.home_no_match_title, query), style = MaterialTheme.typography.titleMedium)
-                Text(stringResource(R.string.home_no_match_body), style = MaterialTheme.typography.bodyMedium)
-            } else {
-                Text(best.name, style = MaterialTheme.typography.labelLarge)
-                Spacer(Modifier.size(4.dp))
-                if (best.isLent) {
-                    Text(stringResource(R.string.home_lent_to, best.lentTo.orEmpty()), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.SemiBold)
-                    Text(stringResource(R.string.home_last_stored_in, best.place), style = MaterialTheme.typography.bodyMedium)
+        Row(Modifier.padding(20.dp), horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f)) {
+                if (best == null) {
+                    Text(stringResource(R.string.home_no_match_title, query), style = MaterialTheme.typography.titleMedium)
+                    Text(stringResource(R.string.home_no_match_body), style = MaterialTheme.typography.bodyMedium)
                 } else {
-                    Text(best.place, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.SemiBold)
+                    Text(best.name, style = MaterialTheme.typography.labelLarge)
+                    Spacer(Modifier.size(4.dp))
+                    if (best.isLent) {
+                        Text(stringResource(R.string.home_lent_to, best.lentTo.orEmpty()), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.SemiBold)
+                        Text(stringResource(R.string.home_last_stored_in, best.place), style = MaterialTheme.typography.bodyMedium)
+                    } else {
+                        Text(best.place, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.SemiBold)
+                    }
                 }
+            }
+            // "Where it is" photo, if there is one: often faster to recognize than words.
+            best?.placePhotoPath?.let { path ->
+                AsyncImage(
+                    model = path,
+                    contentDescription = stringResource(R.string.edit_place_photo_title),
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .size(88.dp)
+                        .clip(RoundedCornerShape(12.dp)),
+                )
             }
         }
     }

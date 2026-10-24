@@ -106,6 +106,7 @@
     <string name="capture_allow_camera">Разрешить доступ к камере</string>
     <string name="capture_open_settings">Открыть настройки</string>
     <string name="capture_close">Закрыть камеру</string>
+    <string name="capture_place_hint">Сфотографируйте место: полку, коробку или ящик</string>
     <string name="capture_failed">Не удалось сделать фото. Попробуйте ещё раз.</string>
 
     <!-- Новая вещь / редактирование -->
@@ -115,6 +116,10 @@
     <string name="edit_name_label">Что это?</string>
     <string name="edit_place_label">Куда вы это убрали?</string>
     <string name="edit_place_placeholder">Верхний ящик, синяя коробка</string>
+    <string name="edit_place_photo_add">Сфотографировать место</string>
+    <string name="edit_place_photo_title">Где лежит</string>
+    <string name="edit_place_photo_retake">Переснять фото места</string>
+    <string name="edit_place_photo_remove">Убрать фото места</string>
     <string name="edit_keywords_title">Слова для поиска</string>
     <string name="edit_remove_keyword">Убрать «%1$s»</string>
     <string name="edit_add_keyword_label">Добавить слово</string>

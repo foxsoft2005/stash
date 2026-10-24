@@ -68,13 +68,22 @@ jobs:
       # changed the database without committing the new schema (needed for
       # migrations), so fail with instructions instead of letting it slip by.
       - name: Room schema is committed
+        id: schema
         run: |
           if [ -n "$(git status --porcelain -- app/schemas)" ]; then
-            echo "::error title=Room schema not committed::Build changed app/schemas/. Build locally and commit the files below with this PR."
+            echo "::error title=Room schema not committed::Build changed app/schemas/. Commit the generated files (build locally, or download the room-schemas artifact of this run) with this PR."
             git status --porcelain -- app/schemas
             git diff -- app/schemas
             exit 1
           fi
+
+      # The generated schema files, so they can be committed without a local build.
+      - name: Upload generated Room schemas
+        if: ${{ failure() && steps.schema.outcome == 'failure' }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: room-schemas
+          path: app/schemas/
 
       # One-line results on the run and the PR, and a guard against "green but
       # tested nothing" (e.g. a filter or source-set change that skips all tests).

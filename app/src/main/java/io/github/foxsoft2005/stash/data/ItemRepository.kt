@@ -22,13 +22,17 @@ class ItemRepository(
     suspend fun delete(item: Item) {
         dao.delete(item.id)
         photos.delete(item.photoPath)
+        photos.delete(item.placePhotoPath)
     }
 
     /** Batch delete: rows in one statement, then their photos. */
     suspend fun deleteAll(items: List<Item>) {
         if (items.isEmpty()) return
         dao.deleteAll(items.map { it.id })
-        items.forEach { photos.delete(it.photoPath) }
+        items.forEach {
+            photos.delete(it.photoPath)
+            photos.delete(it.placePhotoPath)
+        }
     }
 
     /** Batch "Move to…": returns how many items actually changed place. */
