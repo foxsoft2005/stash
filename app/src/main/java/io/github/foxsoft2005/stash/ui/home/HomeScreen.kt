@@ -27,6 +27,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.input.TextFieldLineLimits
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.AssignmentReturn
+import androidx.compose.material.icons.automirrored.rounded.Sort
+import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.RadioButtonUnchecked
@@ -38,6 +40,8 @@ import androidx.compose.material.icons.rounded.PhotoCamera
 import androidx.compose.material.icons.rounded.Place
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.Card
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
@@ -58,6 +62,8 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -79,6 +85,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import io.github.foxsoft2005.stash.R
 import io.github.foxsoft2005.stash.data.Item
+import io.github.foxsoft2005.stash.data.ItemSort
 
 @Composable
 fun HomeScreen(
@@ -202,7 +209,11 @@ fun HomeScreen(
                     }
                 }
                 item(span = { GridItemSpan(maxLineSpan) }) {
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
                         FilterChip(
                             selected = !state.lentOnly,
                             onClick = { viewModel.setLentOnly(false) },
@@ -213,6 +224,9 @@ fun HomeScreen(
                             onClick = { viewModel.setLentOnly(true) },
                             label = { Text(stringResource(R.string.home_filter_lent, state.lentCount)) },
                         )
+                        Spacer(Modifier.weight(1f))
+                        // Search results are ordered by relevance, so sorting only applies when not searching.
+                        if (!state.isSearching) SortMenu(current = state.sort, onSelect = viewModel::setSort)
                     }
                 }
                 if (state.isSearching) {
@@ -288,6 +302,47 @@ private fun AnswerCard(query: String, best: Item?, onOpenItem: (Long) -> Unit) {
                 } else {
                     Text(best.place, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.SemiBold)
                 }
+            }
+        }
+    }
+}
+
+/** Sort button with a checkmarked list of orders. */
+@Composable
+private fun SortMenu(current: ItemSort, onSelect: (ItemSort) -> Unit) {
+    var open by remember { mutableStateOf(false) }
+    Box {
+        IconButton(onClick = { open = true }) {
+            Icon(Icons.AutoMirrored.Rounded.Sort, contentDescription = stringResource(R.string.sort_title))
+        }
+        DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
+            ItemSort.entries.forEach { option ->
+                DropdownMenuItem(
+                    text = {
+                        Text(
+                            stringResource(
+                                when (option) {
+                                    ItemSort.UPDATED -> R.string.sort_updated
+                                    ItemSort.ADDED -> R.string.sort_added
+                                    ItemSort.NAME -> R.string.sort_name
+                                    ItemSort.PLACE -> R.string.sort_place
+                                },
+                            ),
+                        )
+                    },
+                    leadingIcon = {
+                        if (option == current) {
+                            Icon(Icons.Rounded.Check, contentDescription = null)
+                        } else {
+                            Spacer(Modifier.size(24.dp))
+                        }
+                    },
+                    onClick = {
+                        open = false
+                        onSelect(option)
+                    },
+                    modifier = Modifier.semantics { selected = option == current },
+                )
             }
         }
     }

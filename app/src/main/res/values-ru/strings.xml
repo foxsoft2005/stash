@@ -28,6 +28,13 @@
     <string name="home_empty_title">Пока ничего нет</string>
     <string name="home_empty_body">Сфотографируйте вещь, когда убираете её. Через несколько месяцев просто спросите: «где мой паспорт?»</string>
 
+    <!-- Сортировка -->
+    <string name="sort_title">Сортировка</string>
+    <string name="sort_updated">Недавно изменённые</string>
+    <string name="sort_added">Недавно добавленные</string>
+    <string name="sort_name">По названию (А–Я)</string>
+    <string name="sort_place">По месту (А–Я)</string>
+
     <!-- Выбор нескольких вещей (долгое нажатие на карточку) -->
     <plurals name="selection_count">
         <item quantity="one">Выбрано: %d</item>

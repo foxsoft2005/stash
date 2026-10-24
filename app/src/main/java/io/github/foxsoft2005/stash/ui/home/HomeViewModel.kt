@@ -11,6 +11,9 @@ import androidx.lifecycle.viewModelScope
 import io.github.foxsoft2005.stash.R
 import io.github.foxsoft2005.stash.data.Item
 import io.github.foxsoft2005.stash.data.ItemRepository
+import io.github.foxsoft2005.stash.data.ItemSort
+import io.github.foxsoft2005.stash.data.ItemSortStore
+import io.github.foxsoft2005.stash.data.sortItems
 import io.github.foxsoft2005.stash.data.backup.BackupReminder
 import io.github.foxsoft2005.stash.data.backup.BackupReminders
 import io.github.foxsoft2005.stash.data.backup.BackupStatusStore
@@ -39,6 +42,8 @@ data class HomeUiState(
     val selected: List<Item> = emptyList(),
     /** Items just deleted, waiting for the Undo window to close. */
     val pendingDeletion: PendingDeletion? = null,
+    /** Grid order when not searching (search results stay ordered by relevance). */
+    val sort: ItemSort = ItemSort.DEFAULT,
 ) {
     val isSearching: Boolean get() = query.isNotBlank()
     /** The single best answer to "where is my …?" */
@@ -52,6 +57,7 @@ data class HomeUiState(
 class HomeViewModel(
     private val repository: ItemRepository,
     private val backupStatus: BackupStatusStore,
+    private val sortStore: ItemSortStore,
     /** Outlives this screen, so a pending delete still completes if the screen goes away. */
     private val appScope: CoroutineScope,
     private val now: () -> Long = System::currentTimeMillis,
@@ -87,12 +93,14 @@ class HomeViewModel(
         snapshotFlow { queryState.text.toString() },
         controls,
         backupStatus.status,
-    ) { stored, query, controls, status ->
+        sortStore.sort,
+    ) { stored, query, controls, status, sort ->
         // Items waiting for Undo are already gone as far as the user can see.
         val hidden = controls.hidden
         val all = if (hidden.isEmpty()) stored else stored.filter { it.id !in hidden }
         val pool = if (controls.lentOnly) all.filter { it.isLent } else all
-        val visible = if (query.isBlank()) pool else ItemSearch.search(query, pool)
+        // Searching: best match first. Otherwise: the order the user picked.
+        val visible = if (query.isBlank()) sortItems(pool, sort) else ItemSearch.search(query, pool)
         HomeUiState(
             isLoading = false,
             query = query,
@@ -103,6 +111,7 @@ class HomeViewModel(
             backupReminder = BackupReminders.reminder(all, status, now()),
             selected = controls.selection.visibleIn(visible),
             pendingDeletion = controls.pending,
+            sort = sort,
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), HomeUiState())
 
@@ -111,6 +120,8 @@ class HomeViewModel(
     }
 
     fun clearQuery() = queryState.clearText()
+
+    fun setSort(sort: ItemSort) = sortStore.set(sort)
 
     /** "Later" on the backup card. */
     fun snoozeBackupReminder() = backupStatus.snooze(BackupReminders.snoozedUntil(now()))
