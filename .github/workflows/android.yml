@@ -18,8 +18,51 @@ permissions:
   contents: read
 
 jobs:
+  # Docs-only changes (Markdown, license, issue forms) don't need a 15-minute
+  # build. "Build, test, lint" is a required check, so instead of not starting
+  # the workflow (which would leave the check pending forever), the build job
+  # is skipped, and GitHub counts a skipped required check as passed.
+  changes:
+    name: Detect changes
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      build: ${{ steps.detect.outputs.build }}
+    steps:
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0 # the base commit is needed to compare against
+
+      - name: Docs-only change?
+        id: detect
+        env:
+          EVENT: ${{ github.event_name }}
+          PR_BASE: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD: ${{ github.event.pull_request.head.sha }}
+          PUSH_BEFORE: ${{ github.event.before }}
+          PUSH_AFTER: ${{ github.sha }}
+        run: |
+          case "$EVENT" in
+            pull_request) range="$PR_BASE...$PR_HEAD" ;;
+            push) range="$PUSH_BEFORE..$PUSH_AFTER" ;;
+            *) range="" ;; # manual run: always build
+          esac
+          if [ -n "$range" ] && files=$(git diff --name-only "$range" 2>/dev/null); then
+            echo "Changed files:"; echo "$files"
+            build=$(echo "$files" | .github/scripts/needs-build.sh)
+          else
+            build=true # manual run, new branch, or history we can't compare: build
+          fi
+          echo "build=$build" >> "$GITHUB_OUTPUT"
+          if [ "$build" = false ]; then
+            echo "::notice title=Build skipped::Only docs changed (Markdown, license or issue forms), so the build, tests and emulator checks were skipped."
+          fi
+
   build:
     name: Build, test, lint
+    needs: changes
+    if: needs.changes.outputs.build == 'true'
     runs-on: ubuntu-24.04 # pinned: ubuntu-latest moves to 26.04 from 2026-10-19; upgrade deliberately
     timeout-minutes: 30
 
