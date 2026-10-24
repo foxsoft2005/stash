@@ -13,6 +13,7 @@ import androidx.activity.compose.LocalActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.compose.CameraXViewfinder
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -24,6 +25,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material3.Button
@@ -62,6 +64,8 @@ fun CaptureScreen(
     viewModel: CaptureViewModel,
     onPhotoTaken: (String) -> Unit,
     onClose: () -> Unit,
+    /** Shown over the viewfinder, e.g. what to photograph. */
+    hint: String? = null,
 ) {
     val context = LocalContext.current
     val activity = LocalActivity.current
@@ -122,6 +126,18 @@ fun CaptureScreen(
                 colors = IconButtonDefaults.filledIconButtonColors(containerColor = Color.Black.copy(alpha = 0.4f)),
             ) {
                 Icon(Icons.Rounded.Close, contentDescription = stringResource(R.string.capture_close), tint = Color.White)
+            }
+            if (hint != null) {
+                Text(
+                    hint,
+                    color = Color.White,
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier
+                        .align(Alignment.TopCenter)
+                        .padding(start = 56.dp, end = 56.dp, top = 6.dp)
+                        .background(Color.Black.copy(alpha = 0.5f), RoundedCornerShape(12.dp))
+                        .padding(horizontal = 12.dp, vertical = 6.dp),
+                )
             }
         }
     }

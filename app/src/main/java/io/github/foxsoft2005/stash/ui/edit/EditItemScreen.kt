@@ -1,6 +1,7 @@
 package io.github.foxsoft2005.stash.ui.edit
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -21,18 +22,22 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.AddAPhoto
 import androidx.compose.material.icons.rounded.AutoAwesome
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.History
+import androidx.compose.material.icons.rounded.PhotoCamera
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.InputChip
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SuggestionChip
@@ -40,6 +45,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -62,9 +68,19 @@ import io.github.foxsoft2005.stash.ai.canOfferNano
 @Composable
 fun EditItemScreen(
     viewModel: EditItemViewModel,
+    /** A place photo just taken by the camera, waiting to be picked up. */
+    placePhotoResult: String?,
+    onPlacePhotoConsumed: () -> Unit,
+    onTakePlacePhoto: () -> Unit,
     onDone: () -> Unit,
     onBack: () -> Unit,
 ) {
+    LaunchedEffect(placePhotoResult) {
+        if (placePhotoResult != null) {
+            viewModel.setPlacePhoto(placePhotoResult)
+            onPlacePhotoConsumed()
+        }
+    }
     val recentPlaces by viewModel.recentPlaces.collectAsStateWithLifecycle()
     val nanoState by viewModel.nanoState.collectAsStateWithLifecycle()
     var confirmDelete by remember { mutableStateOf(false) }
@@ -149,6 +165,12 @@ fun EditItemScreen(
                     }
                 }
             }
+
+            PlacePhoto(
+                path = viewModel.placePhotoPath,
+                onTake = onTakePlacePhoto,
+                onRemove = viewModel::removePlacePhoto,
+            )
 
             Text(stringResource(R.string.edit_keywords_title), style = MaterialTheme.typography.labelLarge)
             if (viewModel.tags.isNotEmpty()) {
@@ -297,5 +319,45 @@ private fun AiStatusLine(state: AiState) {
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
+    }
+}
+
+/** The optional "where it is" photo: an Add button, or the photo with Retake and Remove. */
+@Composable
+private fun PlacePhoto(path: String?, onTake: () -> Unit, onRemove: () -> Unit) {
+    if (path == null) {
+        OutlinedButton(onClick = onTake, modifier = Modifier.fillMaxWidth()) {
+            Icon(Icons.Rounded.AddAPhoto, contentDescription = null, modifier = Modifier.size(18.dp))
+            Spacer(Modifier.size(8.dp))
+            Text(stringResource(R.string.edit_place_photo_add))
+        }
+        return
+    }
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Text(stringResource(R.string.edit_place_photo_title), style = MaterialTheme.typography.labelLarge)
+        Box {
+            AsyncImage(
+                model = path,
+                contentDescription = stringResource(R.string.edit_place_photo_title),
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(max = 220.dp)
+                    .clip(RoundedCornerShape(16.dp)),
+            )
+            Row(
+                Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                FilledTonalIconButton(onClick = onTake) {
+                    Icon(Icons.Rounded.PhotoCamera, contentDescription = stringResource(R.string.edit_place_photo_retake))
+                }
+                FilledTonalIconButton(onClick = onRemove) {
+                    Icon(Icons.Rounded.Close, contentDescription = stringResource(R.string.edit_place_photo_remove))
+                }
+            }
+        }
     }
 }

@@ -125,6 +125,8 @@ dependencies {
     // On-device tests only; nothing here goes into the app.
     androidTestImplementation(libs.androidx.test.runner)
     androidTestImplementation(libs.androidx.test.ext.junit)
+    // Database migration tests against the exported schemas in app/schemas/.
+    androidTestImplementation(libs.androidx.room3.testing)
     // Compose UI tests (layout checks); versions come from the Compose BOM.
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)

@@ -1,6 +1,7 @@
 package io.github.foxsoft2005.stash.data
 
 import android.content.Context
+import androidx.room3.AutoMigration
 import androidx.room3.Database
 import androidx.room3.Room
 import androidx.room3.RoomDatabase
@@ -14,7 +15,13 @@ import kotlinx.coroutines.Dispatchers
  * Never ship a schema change without one, or existing users lose their stash.
  * Exported schemas live in app/schemas/ and must be committed.
  */
-@Database(entities = [Item::class], version = 2, exportSchema = true)
+@Database(
+    entities = [Item::class],
+    version = 3,
+    exportSchema = true,
+    // v3 adds items.placePhotoPath (nullable, so existing rows simply have none).
+    autoMigrations = [AutoMigration(from = 2, to = 3)],
+)
 abstract class StashDatabase : RoomDatabase() {
 
     abstract fun itemDao(): ItemDao

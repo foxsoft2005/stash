@@ -61,9 +61,10 @@ class BackupArchiveTest {
 
     @Test fun `manifest json is stable and readable`() {
         val json = BackupArchive.encode(BackupManifest(exportedAt = 5, items = listOf(drill)))
-        assertTrue(json, json.contains("\"format\":1"))
+        assertTrue(json, json.contains("\"format\":2"))
         assertTrue(json, json.contains("\"lentTo\":\"Mark\""))
         assertTrue(json, json.contains("\"photo\":null"))
+        assertTrue(json, json.contains("\"placePhoto\":null"))
         assertEquals(listOf(drill), BackupArchive.decode(json).items)
     }
 
@@ -85,7 +86,7 @@ class BackupArchiveTest {
     }
 
     @Test fun `newer format asks for an update, junk is damaged`() {
-        expect(BackupException.Reason.NEWER_VERSION) { BackupArchive.decode("""{"format":2,"items":[]}""") }
+        expect(BackupException.Reason.NEWER_VERSION) { BackupArchive.decode("""{"format":3,"items":[]}""") }
         expect(BackupException.Reason.DAMAGED) { BackupArchive.decode("not json") }
         expect(BackupException.Reason.DAMAGED) { BackupArchive.decode("""{"items":[]}""") }
     }
@@ -108,13 +109,45 @@ class BackupArchiveTest {
         assertTrue(!File(staging.parentFile, "evil.jpg").exists())
     }
 
+    @Test fun `extraction never leaves the staging folder, whatever the name`() {
+        val staging = tempDir()
+        assertEquals(File(staging, "ok.jpg").canonicalFile, BackupArchive.insideStaging(staging, "ok.jpg").canonicalFile)
+        for (evil in listOf("../evil.jpg", "../../evil.jpg", "a/../../evil.jpg", "/etc/passwd", "", ".")) {
+            expect(BackupException.Reason.DAMAGED) { BackupArchive.insideStaging(staging, evil) }
+        }
+    }
+
     @Test fun `item converts to backup and back without losing anything`() {
         val item = Item(
             id = 77, name = "Spare keys", place = "Kitchen jar", tags = "key,house keys", note = "blue tag",
             photoPath = "/data/x/photos/a.jpg", lentTo = "Anna", createdAt = 10, updatedAt = 20,
+            placePhotoPath = "/data/x/photos/p.jpg",
         )
-        val restored = item.toBackupItem("photos/a.jpg").toItem("/data/y/photos/b.jpg")
-        assertEquals(item.copy(id = 0, photoPath = "/data/y/photos/b.jpg"), restored)
+        val restored = item.toBackupItem("photos/a.jpg", "photos/p.jpg").toItem("/data/y/photos/b.jpg", "/data/y/photos/q.jpg")
+        assertEquals(item.copy(id = 0, photoPath = "/data/y/photos/b.jpg", placePhotoPath = "/data/y/photos/q.jpg"), restored)
+    }
+
+    @Test fun `place photo survives a full backup round trip`() {
+        val src = tempDir()
+        val itemPhoto = File(src, "a1.jpg").apply { writeBytes(byteArrayOf(1, 2, 3)) }
+        val placePhoto = File(src, "p1.jpg").apply { writeBytes(byteArrayOf(9, 8, 7)) }
+        val keys = passport.copy(photo = "photos/a1.jpg", placePhoto = "photos/p1.jpg")
+        val out = ByteArrayOutputStream()
+        BackupFile.write(
+            out, password.copyOf(), BackupManifest(exportedAt = 1, items = listOf(keys)),
+            mapOf("photos/a1.jpg" to itemPhoto, "photos/p1.jpg" to placePhoto), iterations = 1_000,
+        )
+        val back = BackupFile.read(ByteArrayInputStream(out.toByteArray()), password.copyOf(), tempDir())
+        assertEquals(keys, back.manifest.items.single())
+        assertArrayEquals(byteArrayOf(9, 8, 7), back.photos.getValue("photos/p1.jpg").readBytes())
+    }
+
+    @Test fun `format 1 backups (no place photos) still restore`() {
+        val json = """{"format":1,"exportedAt":7,"items":[{"name":"Passport","place":"Drawer",
+            "tags":[],"note":"","lentTo":null,"createdAt":1,"updatedAt":2,"photo":"photos/a.jpg"}]}"""
+        val item = BackupArchive.decode(json).items.single()
+        assertEquals("photos/a.jpg", item.photo)
+        assertEquals(null, item.placePhoto)
     }
 
     private fun expect(reason: BackupException.Reason, block: () -> Unit) {
