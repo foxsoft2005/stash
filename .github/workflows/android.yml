@@ -74,6 +74,12 @@ jobs:
             echo "::error title=Room schema not committed::Build changed app/schemas/. Commit the generated files (build locally, or download the room-schemas artifact of this run) with this PR."
             git status --porcelain -- app/schemas
             git diff -- app/schemas
+            # Each new or changed schema file as an annotation too: readable from the
+            # PR page and the API even where downloading artifacts isn't possible.
+            git ls-files --others --modified --exclude-standard -- app/schemas | while read -r f; do
+              body=$(sed -e 's/%/%25/g' "$f" | awk '{printf "%s%%0A", $0}')
+              echo "::notice title=Generated schema: $f::$body"
+            done
             exit 1
           fi
 
