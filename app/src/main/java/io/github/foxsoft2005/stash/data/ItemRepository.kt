@@ -31,6 +31,13 @@ class ItemRepository(
         items.forEach { photos.delete(it.photoPath) }
     }
 
+    /** Batch "Move to…": returns how many items actually changed place. */
+    suspend fun moveTo(items: List<Item>, place: String): Int {
+        val targets = Places.moveTargets(items, place)
+        if (targets.isEmpty()) return 0
+        return dao.setPlace(targets.map { it.id }, place.trim(), System.currentTimeMillis())
+    }
+
     /** Clears "lent to" on each item that has it. Returns how many changed. */
     suspend fun markReturned(items: List<Item>): Int {
         val lent = items.filter { it.isLent }

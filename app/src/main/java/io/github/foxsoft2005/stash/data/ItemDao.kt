@@ -29,6 +29,10 @@ interface ItemDao {
     @Query("DELETE FROM items WHERE id = :id")
     suspend fun delete(id: Long)
 
+    /** Moves the given items to [place] in one statement. */
+    @Query("UPDATE items SET place = :place, updatedAt = :now WHERE id IN (:ids)")
+    suspend fun setPlace(ids: List<Long>, place: String, now: Long): Int
+
     @Query("DELETE FROM items WHERE id IN (:ids)")
     suspend fun deleteAll(ids: List<Long>)
 }

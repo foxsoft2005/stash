@@ -62,9 +62,12 @@ class TranslationsTest {
             for ((name, en) in english.strings) {
                 assertEquals("$lang: $name", placeholders(en), placeholders(t.strings.getValue(name)))
             }
+            // Every plural form has the same placeholders as the English "other" form
+            // (the count as %d or %1$d, then any extra arguments such as %2$s).
             for ((name, forms) in t.plurals) {
+                val expected = placeholders(english.plurals.getValue(name).getValue("other"))
                 forms.forEach { (q, text) ->
-                    assertEquals("$lang: $name[$q] must contain %d", listOf("%d"), placeholders(text))
+                    assertEquals("$lang: $name[$q] placeholders", expected, placeholders(text))
                 }
             }
         }

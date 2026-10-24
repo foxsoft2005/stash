@@ -67,6 +67,22 @@
         <item quantity="other">Удалено %d вещи</item>
     </plurals>
     <string name="action_undo">Отменить</string>
+    <string name="selection_move">Переместить…</string>
+    <plurals name="move_title">
+        <item quantity="one">Переместить %d вещь</item>
+        <item quantity="few">Переместить %d вещи</item>
+        <item quantity="many">Переместить %d вещей</item>
+        <item quantity="other">Переместить %d вещи</item>
+    </plurals>
+    <string name="move_action">Переместить</string>
+    <!-- Без согласования с родом и падежом места: «Перемещено вещей: 3. Новое место: …» -->
+    <plurals name="selection_moved">
+        <item quantity="one">Перемещено вещей: %1$d. Новое место: «%2$s»</item>
+        <item quantity="few">Перемещено вещей: %1$d. Новое место: «%2$s»</item>
+        <item quantity="many">Перемещено вещей: %1$d. Новое место: «%2$s»</item>
+        <item quantity="other">Перемещено вещей: %1$d. Новое место: «%2$s»</item>
+    </plurals>
+    <string name="selection_already_there">Эти вещи уже здесь: «%1$s»</string>
     <plurals name="selection_marked_returned">
         <item quantity="one">%d вещь отмечена как возвращённая</item>
         <item quantity="few">%d вещи отмечены как возвращённые</item>

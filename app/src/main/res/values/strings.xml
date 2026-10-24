@@ -63,6 +63,17 @@
         <item quantity="other">Deleted %d items</item>
     </plurals>
     <string name="action_undo">Undo</string>
+    <string name="selection_move">Move to…</string>
+    <plurals name="move_title">
+        <item quantity="one">Move %d item</item>
+        <item quantity="other">Move %d items</item>
+    </plurals>
+    <string name="move_action">Move</string>
+    <plurals name="selection_moved">
+        <item quantity="one">Moved %1$d item to “%2$s”</item>
+        <item quantity="other">Moved %1$d items to “%2$s”</item>
+    </plurals>
+    <string name="selection_already_there">Already in “%1$s”</string>
     <plurals name="selection_marked_returned">
         <item quantity="one">%d item marked as returned</item>
         <item quantity="other">%d items marked as returned</item>

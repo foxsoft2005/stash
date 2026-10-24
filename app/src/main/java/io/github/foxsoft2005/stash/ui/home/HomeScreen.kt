@@ -33,6 +33,8 @@ import androidx.compose.material.icons.automirrored.rounded.Sort
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.Delete
+import androidx.compose.material.icons.rounded.EditLocationAlt
+import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material.icons.rounded.RadioButtonUnchecked
 import androidx.compose.material.icons.rounded.SelectAll
 import androidx.compose.material.icons.rounded.Close
@@ -71,6 +73,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -93,6 +96,7 @@ import coil3.compose.AsyncImage
 import io.github.foxsoft2005.stash.R
 import io.github.foxsoft2005.stash.data.Item
 import io.github.foxsoft2005.stash.data.ItemSort
+import io.github.foxsoft2005.stash.ui.common.PlaceDialog
 
 @Composable
 fun HomeScreen(
@@ -160,6 +164,22 @@ fun HomeScreen(
 
     BackupDialogs(backupViewModel, onChooseExportFile = { name -> saveBackup.launch(name) })
 
+    var moving by rememberSaveable { mutableStateOf(false) }
+    if (moving && state.isSelecting) {
+        val recentPlaces by viewModel.recentPlaces.collectAsStateWithLifecycle()
+        val count = state.selected.size
+        PlaceDialog(
+            title = pluralStringResource(R.plurals.move_title, count, count),
+            confirmLabel = stringResource(R.string.move_action),
+            recentPlaces = recentPlaces,
+            onConfirm = { place ->
+                moving = false
+                viewModel.moveSelected(place)
+            },
+            onDismiss = { moving = false },
+        )
+    }
+
     Scaffold(
         topBar = {
             if (state.isSelecting) {
@@ -169,6 +189,7 @@ fun HomeScreen(
                     onCancel = viewModel::clearSelection,
                     onSelectAll = viewModel::selectAll,
                     onMarkReturned = viewModel::markSelectedReturned,
+                    onMove = { moving = true },
                     onDelete = viewModel::deleteSelected,
                 )
             } else Row(
@@ -447,7 +468,10 @@ private fun SortMenu(current: ItemSort, onSelect: (ItemSort) -> Unit) {
     }
 }
 
-/** Batch mode's top bar: "3 selected" and the actions for them. */
+/**
+ * Batch mode's top bar: "3 selected", then Move and Delete; less frequent actions
+ * sit in ⋮ so the bar fits on small phones in any language.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun SelectionBar(
@@ -456,29 +480,42 @@ private fun SelectionBar(
     onCancel: () -> Unit,
     onSelectAll: () -> Unit,
     onMarkReturned: () -> Unit,
+    onMove: () -> Unit,
     onDelete: () -> Unit,
 ) {
+    var more by remember { mutableStateOf(false) }
     TopAppBar(
         navigationIcon = {
             IconButton(onClick = onCancel) {
                 Icon(Icons.Rounded.Close, contentDescription = stringResource(R.string.selection_cancel))
             }
         },
-        title = { Text(pluralStringResource(R.plurals.selection_count, count, count)) },
+        title = { Text(pluralStringResource(R.plurals.selection_count, count, count), maxLines = 1, overflow = TextOverflow.Ellipsis) },
         actions = {
-            IconButton(onClick = onSelectAll) {
-                Icon(Icons.Rounded.SelectAll, contentDescription = stringResource(R.string.selection_select_all))
-            }
-            if (canMarkReturned) {
-                IconButton(onClick = onMarkReturned) {
-                    Icon(
-                        Icons.AutoMirrored.Rounded.AssignmentReturn,
-                        contentDescription = stringResource(R.string.selection_mark_returned),
-                    )
-                }
+            IconButton(onClick = onMove) {
+                Icon(Icons.Rounded.EditLocationAlt, contentDescription = stringResource(R.string.selection_move))
             }
             IconButton(onClick = onDelete) {
                 Icon(Icons.Rounded.Delete, contentDescription = stringResource(R.string.selection_delete))
+            }
+            Box {
+                IconButton(onClick = { more = true }) {
+                    Icon(Icons.Rounded.MoreVert, contentDescription = stringResource(R.string.backup_more_options))
+                }
+                DropdownMenu(expanded = more, onDismissRequest = { more = false }) {
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.selection_select_all)) },
+                        leadingIcon = { Icon(Icons.Rounded.SelectAll, contentDescription = null) },
+                        onClick = { more = false; onSelectAll() },
+                    )
+                    if (canMarkReturned) {
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.selection_mark_returned)) },
+                            leadingIcon = { Icon(Icons.AutoMirrored.Rounded.AssignmentReturn, contentDescription = null) },
+                            onClick = { more = false; onMarkReturned() },
+                        )
+                    }
+                }
             }
         },
     )

@@ -31,6 +31,16 @@ object Places {
     fun recent(places: List<String>, limit: Int): List<String> =
         places.filter { it.isNotBlank() }.distinctBy(::key).take(limit)
 
+    /**
+     * The items a "Move to [place]" changes: those not already written exactly
+     * as [place]. ("garage" → "Garage" counts, so a move also tidies spelling.)
+     */
+    fun moveTargets(items: List<Item>, place: String): List<Item> {
+        val target = place.trim()
+        if (target.isEmpty()) return emptyList()
+        return items.filter { it.place.trim() != target }
+    }
+
     /** True if [item] is stored at the place identified by [placeKey]. */
     fun contains(placeKey: String, item: Item): Boolean = key(item.place) == placeKey
 
