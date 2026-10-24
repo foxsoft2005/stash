@@ -108,6 +108,14 @@ class BackupArchiveTest {
         assertTrue(!File(staging.parentFile, "evil.jpg").exists())
     }
 
+    @Test fun `extraction never leaves the staging folder, whatever the name`() {
+        val staging = tempDir()
+        assertEquals(File(staging, "ok.jpg").canonicalFile, BackupArchive.insideStaging(staging, "ok.jpg").canonicalFile)
+        for (evil in listOf("../evil.jpg", "../../evil.jpg", "a/../../evil.jpg", "/etc/passwd", "", ".")) {
+            expect(BackupException.Reason.DAMAGED) { BackupArchive.insideStaging(staging, evil) }
+        }
+    }
+
     @Test fun `item converts to backup and back without losing anything`() {
         val item = Item(
             id = 77, name = "Spare keys", place = "Kitchen jar", tags = "key,house keys", note = "blue tag",

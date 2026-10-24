@@ -98,7 +98,7 @@ object BackupArchive {
                 entry.isDirectory -> Unit
                 entry.name == MANIFEST -> manifest = decode(readLimited(zip, MAX_MANIFEST_BYTES))
                 photoEntry.matches(entry.name) -> {
-                    val target = File(staging, entry.name.removePrefix(PHOTO_DIR))
+                    val target = insideStaging(staging, entry.name.removePrefix(PHOTO_DIR))
                     target.outputStream().use { zip.copyTo(it) }
                     photos[entry.name] = target
                 }
@@ -107,6 +107,21 @@ object BackupArchive {
         }
         val found = manifest ?: throw BackupException(BackupException.Reason.DAMAGED)
         return BackupContents(found, photos)
+    }
+
+    /**
+     * The file [name] inside [staging], refusing anything that would land outside it
+     * ("Zip Slip": an entry like `photos/../../databases/stash.db`).
+     *
+     * [photoEntry] already only lets through plain `photos/<letters, digits, _ or ->.jpg`
+     * names, so this can't trigger today; it's the second, independent lock, and the
+     * one that doesn't depend on keeping that regex strict forever.
+     */
+    internal fun insideStaging(staging: File, name: String): File {
+        val root = staging.toPath().toAbsolutePath().normalize()
+        val target = root.resolve(name).normalize()
+        if (!target.startsWith(root) || target == root) throw BackupException(BackupException.Reason.DAMAGED)
+        return target.toFile()
     }
 
     internal fun encode(manifest: BackupManifest): String = Json.encodeToString(
