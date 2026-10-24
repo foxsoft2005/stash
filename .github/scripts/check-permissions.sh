@@ -19,6 +19,6 @@ for apk in "$@"; do
       status=1
     fi
   done
-  echo "::notice title=Permissions in $(basename "$apk")::$(echo "$perms" | sed 's/android.permission.//' | paste -sd ', ' -)"
+  echo "::notice title=Permissions in $(basename "$apk")::$(echo "$perms" | sed 's/android.permission.//' | paste -sd, - | sed 's/,/, /g')"
 done
 exit $status
