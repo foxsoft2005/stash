@@ -31,6 +31,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.AssignmentReturn
 import androidx.compose.material.icons.automirrored.rounded.Sort
 import androidx.compose.material.icons.rounded.Check
+import androidx.compose.material.icons.rounded.ArrowDropDown
 import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.EditLocationAlt
@@ -52,6 +53,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.InputChip
 import androidx.compose.material3.InputChipDefaults
@@ -87,6 +89,8 @@ import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -367,16 +371,19 @@ private fun AnswerCard(query: String, best: Item?, onOpenItem: (Long) -> Unit) {
 
 /** Test tags for [HomeFilterRow] (used by the on-device layout test). */
 internal object HomeFilterTags {
-    const val ALL = "filter-all"
-    const val LENT = "filter-lent"
+    const val FILTER = "filter-show"
+    const val FILTER_ALL = "filter-show-all"
+    const val FILTER_LENT = "filter-show-lent"
     const val PLACES = "filter-places"
     const val SORT = "filter-sort"
 }
 
 /**
- * All · Lent out · Places, with the sort button pinned top-right. The chips wrap
- * onto a second line when they don't fit (longer translations, large fonts,
- * narrow phones) instead of running under the sort button.
+ * [All 12 ▾] [📍 Places] … [⇅]. All / Lent out is one choice, so it's a single chip
+ * showing the current choice, with a menu to switch; that keeps the row on one line
+ * in every language. (Highlighted while "Lent out" is on, so a filtered grid is
+ * never mistaken for everything.) If a phone is still too narrow, the chips wrap
+ * rather than run under the sort button.
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -391,24 +398,36 @@ internal fun HomeFilterRow(
     sortButton: (@Composable () -> Unit)?,
     modifier: Modifier = Modifier,
 ) {
+    var choosing by remember { mutableStateOf(false) }
     Row(modifier.fillMaxWidth(), verticalAlignment = Alignment.Top) {
         FlowRow(
             modifier = Modifier.weight(1f),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             itemVerticalAlignment = Alignment.CenterVertically,
         ) {
-            FilterChip(
-                selected = !lentOnly,
-                onClick = onAll,
-                label = { Text(allLabel, maxLines = 1) },
-                modifier = Modifier.testTag(HomeFilterTags.ALL),
-            )
-            FilterChip(
-                selected = lentOnly,
-                onClick = onLentOnly,
-                label = { Text(lentLabel, maxLines = 1) },
-                modifier = Modifier.testTag(HomeFilterTags.LENT),
-            )
+            Box {
+                FilterChip(
+                    selected = lentOnly,
+                    onClick = { choosing = true },
+                    label = { Text(if (lentOnly) lentLabel else allLabel, maxLines = 1) },
+                    trailingIcon = {
+                        Icon(Icons.Rounded.ArrowDropDown, contentDescription = null, modifier = Modifier.size(FilterChipDefaults.IconSize))
+                    },
+                    modifier = Modifier
+                        .testTag(HomeFilterTags.FILTER)
+                        .semantics { role = Role.DropdownList },
+                )
+                DropdownMenu(expanded = choosing, onDismissRequest = { choosing = false }) {
+                    FilterMenuItem(allLabel, checked = !lentOnly, tag = HomeFilterTags.FILTER_ALL) {
+                        choosing = false
+                        onAll()
+                    }
+                    FilterMenuItem(lentLabel, checked = lentOnly, tag = HomeFilterTags.FILTER_LENT) {
+                        choosing = false
+                        onLentOnly()
+                    }
+                }
+            }
             AssistChip(
                 onClick = onPlaces,
                 label = { Text(placesLabel, maxLines = 1) },
@@ -420,6 +439,20 @@ internal fun HomeFilterRow(
             Box(Modifier.testTag(HomeFilterTags.SORT)) { sortButton() }
         }
     }
+}
+
+@Composable
+private fun FilterMenuItem(label: String, checked: Boolean, tag: String, onClick: () -> Unit) {
+    DropdownMenuItem(
+        text = { Text(label) },
+        leadingIcon = {
+            if (checked) Icon(Icons.Rounded.Check, contentDescription = null) else Spacer(Modifier.size(24.dp))
+        },
+        onClick = onClick,
+        modifier = Modifier
+            .testTag(tag)
+            .semantics { selected = checked },
+    )
 }
 
 /** "📍 Garage shelf ✕": the place being browsed. Tapping it (or Back) shows all places again. */
