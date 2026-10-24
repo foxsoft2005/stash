@@ -19,7 +19,7 @@ concurrency:
 jobs:
   release:
     name: Signed release
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04 # pinned: ubuntu-latest moves to 26.04 from 2026-10-19; upgrade deliberately
     timeout-minutes: 30
     # Signing secrets live in this environment, which only v* tags may use
     # (Settings › Environments › release), so no branch or PR can read them.
