@@ -110,6 +110,18 @@
         <item quantity="other">%d items marked as returned</item>
     </plurals>
 
+    <!-- App lock -->
+    <string name="lock_menu">App lock</string>
+    <string name="lock_title">Stash is locked</string>
+    <string name="lock_body">Unlock with your fingerprint, face or screen lock.</string>
+    <string name="lock_unlock">Unlock</string>
+    <string name="lock_prompt_title">Unlock Stash</string>
+    <string name="lock_prompt_enable">Turn on app lock</string>
+    <string name="lock_prompt_disable">Turn off app lock</string>
+    <string name="lock_enabled">App lock is on. Stash asks to unlock when you come back after a minute or more.</string>
+    <string name="lock_disabled">App lock is off.</string>
+    <string name="lock_needs_screen_lock">Set up a screen lock (PIN, pattern or password) in your phone\'s settings first.</string>
+
     <!-- Camera -->
     <string name="capture_permission_rationale">Stash needs the camera to photograph where you put things. Photos stay on this phone.</string>
     <string name="capture_permission_denied">Camera access is turned off for Stash. Turn it on in Settings › Permissions › Camera. Photos stay on this phone.</string>

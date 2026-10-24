@@ -127,6 +127,18 @@
         <item quantity="other">%d вещи отмечены как возвращённые</item>
     </plurals>
 
+    <!-- Блокировка приложения -->
+    <string name="lock_menu">Блокировка приложения</string>
+    <string name="lock_title">Stash заблокирован</string>
+    <string name="lock_body">Разблокируйте отпечатком пальца, лицом или блокировкой экрана.</string>
+    <string name="lock_unlock">Разблокировать</string>
+    <string name="lock_prompt_title">Разблокировка Stash</string>
+    <string name="lock_prompt_enable">Включить блокировку</string>
+    <string name="lock_prompt_disable">Выключить блокировку</string>
+    <string name="lock_enabled">Блокировка включена. Если не открывать Stash дольше минуты, он попросит разблокировку.</string>
+    <string name="lock_disabled">Блокировка выключена.</string>
+    <string name="lock_needs_screen_lock">Сначала включите блокировку экрана (PIN-код, графический ключ или пароль) в настройках телефона.</string>
+
     <!-- Камера -->
     <string name="capture_permission_rationale">Приложению Stash нужна камера, чтобы фотографировать, куда вы убираете вещи. Фото остаются на этом телефоне.</string>
     <string name="capture_permission_denied">Доступ к камере для Stash отключён. Включите его в Настройках › Разрешения › Камера. Фото остаются на этом телефоне.</string>
