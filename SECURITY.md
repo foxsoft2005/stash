@@ -24,8 +24,11 @@ Especially interesting:
   forging or modifying a backup that restores without error, crafted files that
   write outside the app's storage, crash or exhaust the phone on restore.
 - **Data leaving the device**: any path by which items, photos or the database
-  reach the network or other apps. Stash has no `INTERNET` permission and
-  excludes its data from Android cloud backup; a way around either counts.
+  reach the network or other apps. Stash has no `INTERNET` permission (CI checks
+  every built APK; libraries asking for it are overridden) and excludes its data
+  from Android cloud backup; a way around either counts. Photos are handed to
+  the system's AICore service for Gemini Nano on supported phones; issues in
+  AICore itself belong with Google.
 - **The capture shortcut and other exported entry points** being usable by
   other apps.
 

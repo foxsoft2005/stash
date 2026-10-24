@@ -109,6 +109,9 @@ jobs:
             ls -la app/build/outputs/apk/release/ || true
             exit 1
           fi
+          # Never publish an APK that can use the internet (see check-permissions.sh).
+          .github/scripts/check-permissions.sh "$apk"
+
           build_tools=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)
           "$build_tools/apksigner" verify --verbose --print-certs "$apk" | tee "$RUNNER_TEMP/signature.txt"
           # The signer's certificate fingerprint: the 64 hex digits on the
