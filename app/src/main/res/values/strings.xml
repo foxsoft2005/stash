@@ -47,6 +47,14 @@
     <string name="places_empty_body">Places show up here once you stash something.</string>
     <string name="places_filter_clear">Show all places</string>
     <string name="home_place_empty">Nothing is stored here any more.</string>
+    <string name="places_rename_cd">Rename “%1$s”</string>
+    <string name="places_rename_title">Rename place</string>
+    <string name="places_rename_action">Rename</string>
+    <string name="places_renamed">Renamed to “%1$s”</string>
+    <plurals name="places_merge_hint">
+        <item quantity="one">This joins “%2$s”, which already has %1$d item.</item>
+        <item quantity="other">This joins “%2$s”, which already has %1$d items.</item>
+    </plurals>
 
     <!-- Batch mode (long-press a card) -->
     <plurals name="selection_count">

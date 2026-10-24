@@ -38,6 +38,10 @@ class ItemRepository(
         return dao.setPlace(targets.map { it.id }, place.trim(), System.currentTimeMillis())
     }
 
+    /** Renames (or merges) a place: every item there gets [newName]. Returns how many changed. */
+    suspend fun renamePlace(fromKey: String, newName: String): Int =
+        moveTo(dao.getAll().filter { Places.contains(fromKey, it) }, newName)
+
     /** Clears "lent to" on each item that has it. Returns how many changed. */
     suspend fun markReturned(items: List<Item>): Int {
         val lent = items.filter { it.isLent }

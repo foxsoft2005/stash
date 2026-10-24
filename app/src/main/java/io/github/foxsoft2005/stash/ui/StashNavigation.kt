@@ -13,6 +13,7 @@ import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
+import io.github.foxsoft2005.stash.data.Places
 import io.github.foxsoft2005.stash.stashContainer
 import io.github.foxsoft2005.stash.ui.capture.CaptureScreen
 import io.github.foxsoft2005.stash.ui.capture.CaptureViewModel
@@ -81,6 +82,10 @@ fun StashNavigation(startWithCamera: Boolean) {
                     onPick = { place ->
                         placeFilter = place
                         backStack.removeLastOrNull()
+                    },
+                    onRenamed = { fromKey, newName ->
+                        // Browsing the renamed place: keep browsing it under its new name.
+                        if (placeFilter?.let(Places::key) == fromKey) placeFilter = newName
                     },
                     onBack = { backStack.removeLastOrNull() },
                 )
