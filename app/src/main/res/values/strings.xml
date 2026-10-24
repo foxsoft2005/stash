@@ -30,6 +30,13 @@
     <string name="home_empty_title">Nothing stashed yet</string>
     <string name="home_empty_body">Snap a photo when you put something away. Months later, just ask “where\'s my passport?”</string>
 
+    <!-- Sorting the grid -->
+    <string name="sort_title">Sort</string>
+    <string name="sort_updated">Recently changed</string>
+    <string name="sort_added">Recently added</string>
+    <string name="sort_name">Name (A–Z)</string>
+    <string name="sort_place">Place (A–Z)</string>
+
     <!-- Batch mode (long-press a card) -->
     <plurals name="selection_count">
         <item quantity="one">%d selected</item>
