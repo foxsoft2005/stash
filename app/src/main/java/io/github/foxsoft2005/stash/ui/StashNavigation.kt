@@ -1,6 +1,10 @@
 package io.github.foxsoft2005.stash.ui
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
@@ -17,11 +21,14 @@ import io.github.foxsoft2005.stash.ui.edit.EditItemViewModel
 import io.github.foxsoft2005.stash.ui.home.BackupViewModel
 import io.github.foxsoft2005.stash.ui.home.HomeScreen
 import io.github.foxsoft2005.stash.ui.home.HomeViewModel
+import io.github.foxsoft2005.stash.ui.places.PlacesScreen
+import io.github.foxsoft2005.stash.ui.places.PlacesViewModel
 import kotlinx.serialization.Serializable
 
 // Navigation 3: the back stack is just a list of @Serializable keys that we own.
 @Serializable data object HomeRoute : NavKey
 @Serializable data object CaptureRoute : NavKey
+@Serializable data object PlacesRoute : NavKey
 @Serializable data class EditRoute(val itemId: Long? = null, val photoPath: String? = null) : NavKey
 
 @Composable
@@ -31,6 +38,10 @@ fun StashNavigation(startWithCamera: Boolean) {
     // the initial keys only matter on first launch.
     val initial: Array<NavKey> = if (startWithCamera) arrayOf(HomeRoute, CaptureRoute) else arrayOf(HomeRoute)
     val backStack = rememberNavBackStack(*initial)
+
+    // The place being browsed on Home. Lives here (not in Home's ViewModel) because the Places
+    // screen sets it, and rememberSaveable keeps it across rotation and process death.
+    var placeFilter by rememberSaveable { mutableStateOf<String?>(null) }
 
     fun popToHome() {
         while (backStack.size > 1) backStack.removeAt(backStack.lastIndex)
@@ -47,10 +58,31 @@ fun StashNavigation(startWithCamera: Boolean) {
         entryProvider = entryProvider {
             entry<HomeRoute> {
                 HomeScreen(
-                    viewModel = viewModel { HomeViewModel(container.repository, container.backupStatus, container.itemSort, container.appScope) },
+                    viewModel = viewModel {
+                        HomeViewModel(
+                            repository = container.repository,
+                            backupStatus = container.backupStatus,
+                            sortStore = container.itemSort,
+                            appScope = container.appScope,
+                            initialPlace = placeFilter,
+                        )
+                    },
                     backupViewModel = viewModel { BackupViewModel(container.backup) },
+                    placeFilter = placeFilter,
+                    onClearPlaceFilter = { placeFilter = null },
                     onCapture = { backStack.add(CaptureRoute) },
                     onOpenItem = { id -> backStack.add(EditRoute(itemId = id)) },
+                    onOpenPlaces = { backStack.add(PlacesRoute) },
+                )
+            }
+            entry<PlacesRoute> {
+                PlacesScreen(
+                    viewModel = viewModel { PlacesViewModel(container.repository) },
+                    onPick = { place ->
+                        placeFilter = place
+                        backStack.removeLastOrNull()
+                    },
+                    onBack = { backStack.removeLastOrNull() },
                 )
             }
             entry<CaptureRoute> {

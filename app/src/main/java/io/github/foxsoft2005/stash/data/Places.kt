@@ -1,7 +1,21 @@
 package io.github.foxsoft2005.stash.data
 
-/** Helpers for the one-tap "recent places" chips on the edit screen. */
-internal object Places {
+import java.text.Collator
+import java.util.Locale
+
+/** One place on the Places screen: "Garage shelf · 7 items". */
+data class PlaceSummary(
+    /** Normalized identity, see [Places.key]. */
+    val key: String,
+    /** How it was last written (most recently changed item). */
+    val name: String,
+    val itemCount: Int,
+    /** Photo of the most recently changed item there that has one. */
+    val latestPhoto: String?,
+)
+
+/** Places: the one-tap chips on the edit screen, the Places screen, and the place filter. */
+object Places {
 
     private val whitespace = Regex("\\s+")
 
@@ -16,4 +30,29 @@ internal object Places {
      */
     fun recent(places: List<String>, limit: Int): List<String> =
         places.filter { it.isNotBlank() }.distinctBy(::key).take(limit)
+
+    /** True if [item] is stored at the place identified by [placeKey]. */
+    fun contains(placeKey: String, item: Item): Boolean = key(item.place) == placeKey
+
+    /**
+     * Every place in [items] with its item count, alphabetical in [locale]
+     * (case/accent-insensitive). "Garage" and "garage " are one place, shown
+     * with the spelling of its most recently changed item.
+     */
+    fun summarize(items: List<Item>, locale: Locale = Locale.getDefault()): List<PlaceSummary> {
+        val text = Collator.getInstance(locale).apply { strength = Collator.PRIMARY }
+        return items
+            .filter { it.place.isNotBlank() }
+            .groupBy { key(it.place) }
+            .map { (placeKey, here) ->
+                val newestFirst = here.sortedByDescending { it.updatedAt }
+                PlaceSummary(
+                    key = placeKey,
+                    name = newestFirst.first().place.trim(),
+                    itemCount = here.size,
+                    latestPhoto = newestFirst.firstOrNull { it.photoPath != null }?.photoPath,
+                )
+            }
+            .sortedWith { a, b -> text.compare(a.name, b.name) }
+    }
 }
