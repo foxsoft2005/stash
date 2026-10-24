@@ -29,7 +29,9 @@ updates:
         patterns: ["*"]
         update-types: [minor, patch]
 
-  # Versions of the actions used in .github/workflows/.
+  # Versions of the actions used in .github/workflows/. They're pinned to exact
+  # commits (a tag can be moved to other code; a commit hash can't), with the
+  # version in a comment; Dependabot updates both together.
   - package-ecosystem: github-actions
     directory: /
     schedule:

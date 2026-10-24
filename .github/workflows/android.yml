@@ -25,12 +25,12 @@ jobs:
 
     steps:
       - name: Check out
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       # gradle/gradle-daemon-jvm.properties asks for Java 25; installing it here
       # avoids Gradle downloading a JDK on every run.
       - name: Set up JDK 25
-        uses: actions/setup-java@v6
+        uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
         with:
           distribution: temurin
           java-version: '25'
@@ -41,7 +41,7 @@ jobs:
       # private repos. The default "enhanced" provider is closed-source, only a free
       # preview for private repos, and sends cache metadata to Gradle.
       - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v6
+        uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
         with:
           cache-provider: basic
 
@@ -129,7 +129,7 @@ jobs:
       # Download from the run's Summary page and install with:
       #   adb install -r app-debug.apk
       - name: Upload debug APK
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: stash-debug-apk
           path: app/build/outputs/apk/debug/*.apk
@@ -140,7 +140,7 @@ jobs:
       # back into real names (Android Studio: Build › Analyze APK… › Load mapping,
       # or `retrace mapping.txt crash.txt`).
       - name: Upload release mapping
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: release-mapping
           path: app/build/outputs/mapping/release/mapping.txt
@@ -157,7 +157,7 @@ jobs:
           sudo udevadm trigger --name-match=kvm
 
       - name: Launch and offline tests on emulator
-        uses: reactivecircus/android-emulator-runner@v2.38.0
+        uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0
         with:
           api-level: 35
           target: google_apis
@@ -173,7 +173,7 @@ jobs:
       # phone (uninstall real releases first; signatures differ). Not a release.
       - name: Upload release test APK
         if: ${{ !cancelled() }}
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: stash-release-test-apk
           path: app/build/outputs/apk/release/app-release.apk
@@ -182,7 +182,7 @@ jobs:
 
       - name: Upload test and lint reports
         if: ${{ !cancelled() }}
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: reports
           path: |
