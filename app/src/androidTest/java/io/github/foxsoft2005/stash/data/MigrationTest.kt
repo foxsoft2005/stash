@@ -12,6 +12,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import java.io.File
 
 /**
  * Existing stashes must survive every app update. Each test builds an old database
@@ -24,12 +25,18 @@ class MigrationTest {
 
     private val instrumentation = InstrumentationRegistry.getInstrumentation()
 
+    // A fresh file for every test: the helper refuses to "create" an old version
+    // over a database a previous test left behind.
+    private val dbFile = instrumentation.targetContext.getDatabasePath("migration-test.db").also { db ->
+        listOf("", "-wal", "-shm", "-journal").forEach { File(db.path + it).delete() }
+    }
+
     @get:Rule
     val helper = MigrationTestHelper(
         instrumentation = instrumentation,
         databaseClass = StashDatabase::class,
         driver = BundledSQLiteDriver(), // same driver as the app
-        file = instrumentation.targetContext.getDatabasePath("migration-test.db"),
+        file = dbFile,
     )
 
     private fun SQLiteConnection.insertPassport(tags: String) = execSQL(
