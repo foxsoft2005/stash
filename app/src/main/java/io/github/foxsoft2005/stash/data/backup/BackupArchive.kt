@@ -23,7 +23,10 @@ import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 import java.util.zip.ZipOutputStream
 
-/** One item as stored in a backup. [photo] is the zip entry name of its photo, if any. */
+/**
+ * One item as stored in a backup. [photo] and [placePhoto] are the zip entry names
+ * of its photos (the item, and where it is), if any.
+ */
 data class BackupItem(
     val name: String,
     val place: String,
@@ -33,6 +36,7 @@ data class BackupItem(
     val createdAt: Long,
     val updatedAt: Long,
     val photo: String?,
+    val placePhoto: String? = null,
 )
 
 data class BackupManifest(
@@ -41,7 +45,11 @@ data class BackupManifest(
     val format: Int = FORMAT,
 ) {
     companion object {
-        const val FORMAT = 1
+        /**
+         * 1: first version. 2: adds "placePhoto" per item. Older apps refuse newer
+         * formats ("update Stash") instead of silently dropping what they don't know.
+         */
+        const val FORMAT = 2
     }
 }
 
@@ -144,6 +152,7 @@ object BackupArchive {
                                 put("createdAt", item.createdAt)
                                 put("updatedAt", item.updatedAt)
                                 put("photo", item.photo?.let(::JsonPrimitive) ?: JsonNull)
+                                put("placePhoto", item.placePhoto?.let(::JsonPrimitive) ?: JsonNull)
                             },
                         )
                     }
@@ -169,6 +178,7 @@ object BackupArchive {
                     createdAt = o["createdAt"]?.jsonPrimitive?.long ?: 0L,
                     updatedAt = o["updatedAt"]?.jsonPrimitive?.long ?: 0L,
                     photo = str("photo")?.takeIf(photoEntry::matches),
+                    placePhoto = str("placePhoto")?.takeIf(photoEntry::matches), // absent in format 1
                 )
             }.filter { it.name.isNotBlank() }
             return BackupManifest(
