@@ -1,0 +1,6 @@
+# Every issue goes through a form, so reports arrive with what's needed to act on them.
+blank_issues_enabled: false
+contact_links:
+  - name: Report a security vulnerability
+    url: https://github.com/foxsoft2005/stash/security/advisories/new
+    about: Please report security problems privately, not as a public issue.

@@ -1,0 +1,32 @@
+name: Feature idea
+description: Suggest something Stash could do better.
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Ideas are welcome! One thing to keep in mind: Stash works **entirely offline**
+        (no internet permission, no account, no cloud), and that won't change.
+        Ideas that fit within that are the easiest to say yes to.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What are you trying to do?
+      description: The situation or problem, in your own words. "When I … I want to … but …"
+    validations:
+      required: true
+
+  - type: textarea
+    id: idea
+    attributes:
+      label: Your idea
+      description: How could Stash help? A rough sketch is fine.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: How do you handle it today? (optional)
+      description: Workarounds, or other apps that do it well.
