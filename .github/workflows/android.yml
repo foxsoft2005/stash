@@ -45,8 +45,8 @@ jobs:
         with:
           cache-provider: basic
 
-      # Release is built too (unsigned, so no secrets needed): it runs R8 code
-      # shrinking, which can fail on things a debug build never touches.
+      # Release is built too (signed with the debug key, so no secrets needed): it
+      # runs R8 code shrinking, which can break things a debug build never touches.
       - name: Build debug and release APKs
         run: ./gradlew assembleDebug assembleRelease --stacktrace
 
@@ -123,6 +123,38 @@ jobs:
           path: app/build/outputs/mapping/release/mapping.txt
           retention-days: 14
           if-no-files-found: error
+
+      # Installs both builds on an emulator and checks the app starts, keeps
+      # running, and survives being killed and reopened. Catches R8 removing
+      # something needed at runtime (v0.1.0-beta.1 crashed on launch that way).
+      - name: Enable KVM for the emulator
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Launch test on emulator (debug + release builds)
+        uses: reactivecircus/android-emulator-runner@v2.38.0
+        with:
+          api-level: 35
+          target: google_apis
+          arch: x86_64
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -camera-front none
+          script: |
+            .github/scripts/smoke-test.sh app/build/outputs/apk/debug/app-debug.apk "Debug build"
+            .github/scripts/smoke-test.sh app/build/outputs/apk/release/app-release.apk "Release build (R8)"
+
+      # The R8 build, signed with the debug key: install it to test shrinking on a
+      # phone (uninstall real releases first; signatures differ). Not a release.
+      - name: Upload release test APK
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: stash-release-test-apk
+          path: app/build/outputs/apk/release/app-release.apk
+          retention-days: 14
+          if-no-files-found: ignore
 
       - name: Upload test and lint reports
         if: ${{ !cancelled() }}
