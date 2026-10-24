@@ -13,6 +13,7 @@ import io.github.foxsoft2005.stash.data.Item
 import io.github.foxsoft2005.stash.data.ItemRepository
 import io.github.foxsoft2005.stash.data.ItemSort
 import io.github.foxsoft2005.stash.data.ItemSortStore
+import io.github.foxsoft2005.stash.data.Places
 import io.github.foxsoft2005.stash.data.sortItems
 import io.github.foxsoft2005.stash.data.backup.BackupReminder
 import io.github.foxsoft2005.stash.data.backup.BackupReminders
@@ -32,8 +33,14 @@ data class HomeUiState(
     val isLoading: Boolean = true,
     val query: String = "",
     val lentOnly: Boolean = false,
+    /** Lent-out items in scope (the chosen place, or everywhere). */
     val lentCount: Int = 0,
+    /** All items in scope (the chosen place, or everywhere). */
+    val scopeCount: Int = 0,
+    /** Everything stored, regardless of filters; 0 = show the first-run empty state. */
     val totalCount: Int = 0,
+    /** Browsing one place: how it's written (latest spelling). Null = all places. */
+    val place: String? = null,
     /** Items to show in the grid: search results, or everything. */
     val items: List<Item> = emptyList(),
     /** Non-null when a "back up your stash" card should show. */
@@ -60,12 +67,15 @@ class HomeViewModel(
     private val sortStore: ItemSortStore,
     /** Outlives this screen, so a pending delete still completes if the screen goes away. */
     private val appScope: CoroutineScope,
+    /** Place chosen on the Places screen (kept by the navigation, so it survives process death). */
+    initialPlace: String? = null,
     private val now: () -> Long = System::currentTimeMillis,
 ) : ViewModel() {
 
     /** Compose's state-based text field state; the UI binds to it directly. */
     val queryState = TextFieldState()
     private val lentOnly = MutableStateFlow(false)
+    private val placeFilter = MutableStateFlow(initialPlace?.takeIf { it.isNotBlank() })
     private val selection = MutableStateFlow(Selection())
     private val pendingDeletion = MutableStateFlow<PendingDeletion?>(null)
     // Deleted for good, but the database may not have caught up yet; IDs are never
@@ -78,6 +88,7 @@ class HomeViewModel(
         private set
 
     private data class Controls(
+        val place: String?,
         val lentOnly: Boolean,
         val selection: Selection,
         val pending: PendingDeletion?,
@@ -86,7 +97,7 @@ class HomeViewModel(
         val hidden: Set<Long> get() = pending?.ids.orEmpty() + deleted
     }
 
-    private val controls = combine(lentOnly, selection, pendingDeletion, deletedIds, ::Controls)
+    private val controls = combine(placeFilter, lentOnly, selection, pendingDeletion, deletedIds, ::Controls)
 
     val uiState: StateFlow<HomeUiState> = combine(
         repository.observeAll(),
@@ -98,15 +109,21 @@ class HomeViewModel(
         // Items waiting for Undo are already gone as far as the user can see.
         val hidden = controls.hidden
         val all = if (hidden.isEmpty()) stored else stored.filter { it.id !in hidden }
-        val pool = if (controls.lentOnly) all.filter { it.isLent } else all
+        // Browsing one place: everything below (chips, search, sorting, batch mode) stays inside it.
+        val placeKey = controls.place?.let(Places::key)
+        val scope = if (placeKey == null) all else all.filter { Places.contains(placeKey, it) }
+        val pool = if (controls.lentOnly) scope.filter { it.isLent } else scope
         // Searching: best match first. Otherwise: the order the user picked.
         val visible = if (query.isBlank()) sortItems(pool, sort) else ItemSearch.search(query, pool)
         HomeUiState(
             isLoading = false,
             query = query,
             lentOnly = controls.lentOnly,
-            lentCount = all.count { it.isLent },
+            lentCount = scope.count { it.isLent },
+            scopeCount = scope.size,
             totalCount = all.size,
+            // Show the place the way it was last written; keep the picked name if nothing is left there.
+            place = controls.place?.let { picked -> scope.maxByOrNull { it.updatedAt }?.place?.trim() ?: picked },
             items = visible,
             backupReminder = BackupReminders.reminder(all, status, now()),
             selected = controls.selection.visibleIn(visible),
@@ -120,6 +137,14 @@ class HomeViewModel(
     }
 
     fun clearQuery() = queryState.clearText()
+
+    /** Browse one place (as picked on the Places screen), or null for all places. */
+    fun setPlaceFilter(place: String?) {
+        val next = place?.takeIf { it.isNotBlank() }
+        if (next?.let(Places::key) == placeFilter.value?.let(Places::key)) return
+        placeFilter.value = next
+        clearSelection() // a selection made in another place would be invisible
+    }
 
     fun setSort(sort: ItemSort) = sortStore.set(sort)
 

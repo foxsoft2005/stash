@@ -35,6 +35,19 @@
     <string name="sort_name">По названию (А–Я)</string>
     <string name="sort_place">По месту (А–Я)</string>
 
+    <!-- Места: просмотр по месту хранения -->
+    <string name="places_title">Места</string>
+    <plurals name="places_count">
+        <item quantity="one">%d вещь</item>
+        <item quantity="few">%d вещи</item>
+        <item quantity="many">%d вещей</item>
+        <item quantity="other">%d вещи</item>
+    </plurals>
+    <string name="places_empty_title">Мест пока нет</string>
+    <string name="places_empty_body">Места появятся здесь, когда вы что-нибудь сохраните.</string>
+    <string name="places_filter_clear">Показать все места</string>
+    <string name="home_place_empty">Здесь больше ничего не лежит.</string>
+
     <!-- Выбор нескольких вещей (долгое нажатие на карточку) -->
     <plurals name="selection_count">
         <item quantity="one">Выбрано: %d</item>

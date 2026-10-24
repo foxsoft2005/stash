@@ -37,6 +37,17 @@
     <string name="sort_name">Name (A–Z)</string>
     <string name="sort_place">Place (A–Z)</string>
 
+    <!-- Places: browse by where things are -->
+    <string name="places_title">Places</string>
+    <plurals name="places_count">
+        <item quantity="one">%d item</item>
+        <item quantity="other">%d items</item>
+    </plurals>
+    <string name="places_empty_title">No places yet</string>
+    <string name="places_empty_body">Places show up here once you stash something.</string>
+    <string name="places_filter_clear">Show all places</string>
+    <string name="home_place_empty">Nothing is stored here any more.</string>
+
     <!-- Batch mode (long-press a card) -->
     <plurals name="selection_count">
         <item quantity="one">%d selected</item>

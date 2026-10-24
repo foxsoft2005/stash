@@ -6,6 +6,8 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.border
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -39,6 +41,7 @@ import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material.icons.rounded.PhotoCamera
 import androidx.compose.material.icons.rounded.Place
 import androidx.compose.material.icons.rounded.Search
+import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Card
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -47,6 +50,8 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
+import androidx.compose.material3.InputChip
+import androidx.compose.material3.InputChipDefaults
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -91,9 +96,14 @@ import io.github.foxsoft2005.stash.data.ItemSort
 fun HomeScreen(
     viewModel: HomeViewModel,
     backupViewModel: BackupViewModel,
+    /** The place picked on the Places screen, or null for all places. */
+    placeFilter: String?,
+    onClearPlaceFilter: () -> Unit,
     onCapture: () -> Unit,
     onOpenItem: (Long) -> Unit,
+    onOpenPlaces: () -> Unit,
 ) {
+    LaunchedEffect(placeFilter) { viewModel.setPlaceFilter(placeFilter) }
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbar = remember { SnackbarHostState() }
 
@@ -142,6 +152,8 @@ fun HomeScreen(
         }
     }
 
+    // Back first leaves batch mode, then the place being browsed, then the app.
+    BackHandler(enabled = placeFilter != null && !state.isSelecting, onBack = onClearPlaceFilter)
     BackHandler(enabled = state.isSelecting, onBack = viewModel::clearSelection)
 
     BackupDialogs(backupViewModel, onChooseExportFile = { name -> saveBackup.launch(name) })
@@ -208,25 +220,53 @@ fun HomeScreen(
                         )
                     }
                 }
+                val place = state.place
+                if (place != null) {
+                    item(span = { GridItemSpan(maxLineSpan) }, key = "place-filter") {
+                        PlaceFilterChip(place = place, onClear = onClearPlaceFilter)
+                    }
+                }
                 item(span = { GridItemSpan(maxLineSpan) }) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        FilterChip(
-                            selected = !state.lentOnly,
-                            onClick = { viewModel.setLentOnly(false) },
-                            label = { Text(stringResource(R.string.home_filter_all, state.totalCount)) },
-                        )
-                        FilterChip(
-                            selected = state.lentOnly,
-                            onClick = { viewModel.setLentOnly(true) },
-                            label = { Text(stringResource(R.string.home_filter_lent, state.lentCount)) },
-                        )
-                        Spacer(Modifier.weight(1f))
+                        // Scrolls sideways if long labels (or big fonts) don't fit; the sort button stays put.
+                        Row(
+                            modifier = Modifier
+                                .weight(1f)
+                                .horizontalScroll(rememberScrollState()),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            FilterChip(
+                                selected = !state.lentOnly,
+                                onClick = { viewModel.setLentOnly(false) },
+                                label = { Text(stringResource(R.string.home_filter_all, state.scopeCount)) },
+                            )
+                            FilterChip(
+                                selected = state.lentOnly,
+                                onClick = { viewModel.setLentOnly(true) },
+                                label = { Text(stringResource(R.string.home_filter_lent, state.lentCount)) },
+                            )
+                            AssistChip(
+                                onClick = onOpenPlaces,
+                                label = { Text(stringResource(R.string.places_title)) },
+                                leadingIcon = { Icon(Icons.Rounded.Place, contentDescription = null, modifier = Modifier.size(18.dp)) },
+                            )
+                        }
                         // Search results are ordered by relevance, so sorting only applies when not searching.
                         if (!state.isSearching) SortMenu(current = state.sort, onSelect = viewModel::setSort)
+                    }
+                }
+                if (place != null && state.scopeCount == 0) {
+                    item(span = { GridItemSpan(maxLineSpan) }, key = "place-empty") {
+                        Text(
+                            stringResource(R.string.home_place_empty),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(vertical = 24.dp),
+                        )
                     }
                 }
                 if (state.isSearching) {
@@ -305,6 +345,24 @@ private fun AnswerCard(query: String, best: Item?, onOpenItem: (Long) -> Unit) {
             }
         }
     }
+}
+
+/** "📍 Garage shelf ✕": the place being browsed. Tapping it (or Back) shows all places again. */
+@Composable
+private fun PlaceFilterChip(place: String, onClear: () -> Unit) {
+    InputChip(
+        selected = true,
+        onClick = onClear,
+        label = { Text(place, maxLines = 1, overflow = TextOverflow.Ellipsis) },
+        leadingIcon = { Icon(Icons.Rounded.Place, contentDescription = null, modifier = Modifier.size(InputChipDefaults.IconSize)) },
+        trailingIcon = {
+            Icon(
+                Icons.Rounded.Close,
+                contentDescription = stringResource(R.string.places_filter_clear),
+                modifier = Modifier.size(InputChipDefaults.IconSize),
+            )
+        },
+    )
 }
 
 /** Sort button with a checkmarked list of orders. */
