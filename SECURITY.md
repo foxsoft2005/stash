@@ -36,6 +36,17 @@ Out of scope: attacks that need an unlocked phone with root or developer
 access, and the security of Android, AICore/Gemini Nano or ML Kit themselves
 (please report those to Google).
 
+### App lock
+
+App lock (optional) keeps the screens away from someone who picks up your
+unlocked phone. It uses Android's own prompt (fingerprint, face or the phone's
+screen lock) and isn't encryption: the data is protected at rest by Android's
+app sandbox and the phone's storage encryption, exactly as without the lock.
+So bypassing App lock with code running on the phone (root, a debugger, a
+hooking framework) is out of scope: that access can read the data directly.
+Getting past the lock screen *without* such access (e.g. a screen or flow that
+shows items while locked) is in scope.
+
 ## Supported versions
 
 Only the latest code on `main` is supported.

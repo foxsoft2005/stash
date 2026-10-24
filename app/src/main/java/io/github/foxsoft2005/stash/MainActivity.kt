@@ -50,6 +50,12 @@ class MainActivity : FragmentActivity() {
             this,
             ContextCompat.getMainExecutor(this),
             object : BiometricPrompt.AuthenticationCallback() {
+                // No CryptoObject on purpose (CodeQL java/android/insecure-local-authentication):
+                // App lock hides the screens from someone holding the unlocked phone; it doesn't
+                // encrypt anything. Code that could fake this callback (root, a debugger, a hooking
+                // framework) can read the database directly, so binding a key here would protect
+                // nothing. A key would also stop face unlock on many phones (crypto needs "strong"
+                // biometrics) and be wiped whenever a fingerprint is added. See SECURITY.md.
                 override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
                     afterAuth?.invoke()
                     afterAuth = null
