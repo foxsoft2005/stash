@@ -30,6 +30,26 @@
     <string name="home_empty_title">Nothing stashed yet</string>
     <string name="home_empty_body">Snap a photo when you put something away. Months later, just ask “where\'s my passport?”</string>
 
+    <!-- Batch mode (long-press a card) -->
+    <plurals name="selection_count">
+        <item quantity="one">%d selected</item>
+        <item quantity="other">%d selected</item>
+    </plurals>
+    <string name="selection_select">Select</string>
+    <string name="selection_cancel">Cancel selection</string>
+    <string name="selection_select_all">Select all</string>
+    <string name="selection_mark_returned">Mark as returned</string>
+    <string name="selection_delete">Delete selected</string>
+    <plurals name="selection_deleted">
+        <item quantity="one">Deleted %d item</item>
+        <item quantity="other">Deleted %d items</item>
+    </plurals>
+    <string name="action_undo">Undo</string>
+    <plurals name="selection_marked_returned">
+        <item quantity="one">%d item marked as returned</item>
+        <item quantity="other">%d items marked as returned</item>
+    </plurals>
+
     <!-- Camera -->
     <string name="capture_permission_rationale">Stash needs the camera to photograph where you put things. Photos stay on this phone.</string>
     <string name="capture_permission_denied">Camera access is turned off for Stash. Turn it on in Settings › Permissions › Camera. Photos stay on this phone.</string>
