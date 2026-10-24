@@ -47,6 +47,16 @@
     <string name="places_empty_body">Места появятся здесь, когда вы что-нибудь сохраните.</string>
     <string name="places_filter_clear">Показать все места</string>
     <string name="home_place_empty">Здесь больше ничего не лежит.</string>
+    <string name="places_rename_cd">Переименовать «%1$s»</string>
+    <string name="places_rename_title">Переименовать место</string>
+    <string name="places_rename_action">Переименовать</string>
+    <string name="places_renamed">Новое название: «%1$s»</string>
+    <plurals name="places_merge_hint">
+        <item quantity="one">Место объединится с «%2$s», где уже есть %1$d вещь.</item>
+        <item quantity="few">Место объединится с «%2$s», где уже есть %1$d вещи.</item>
+        <item quantity="many">Место объединится с «%2$s», где уже есть %1$d вещей.</item>
+        <item quantity="other">Место объединится с «%2$s», где уже есть %1$d вещи.</item>
+    </plurals>
 
     <!-- Выбор нескольких вещей (долгое нажатие на карточку) -->
     <plurals name="selection_count">

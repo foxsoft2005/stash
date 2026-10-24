@@ -41,6 +41,23 @@ object Places {
         return items.filter { it.place.trim() != target }
     }
 
+    /**
+     * Renaming the place [fromKey] to [newName]: the items that change (those
+     * there, unless already written exactly as [newName]).
+     */
+    fun renameTargets(items: List<Item>, fromKey: String, newName: String): List<Item> =
+        moveTargets(items.filter { contains(fromKey, it) }, newName)
+
+    /**
+     * The other place a rename of [fromKey] to [newName] would merge into, if any:
+     * "Garage shelve" → "garage shelf" joins the existing "Garage shelf".
+     */
+    fun mergeTarget(places: List<PlaceSummary>, fromKey: String, newName: String): PlaceSummary? {
+        val toKey = key(newName)
+        if (toKey.isEmpty() || toKey == fromKey) return null
+        return places.firstOrNull { it.key == toKey }
+    }
+
     /** True if [item] is stored at the place identified by [placeKey]. */
     fun contains(placeKey: String, item: Item): Boolean = key(item.place) == placeKey
 
