@@ -103,6 +103,7 @@ import coil3.compose.AsyncImage
 import io.github.foxsoft2005.stash.R
 import io.github.foxsoft2005.stash.data.Item
 import io.github.foxsoft2005.stash.data.ItemSort
+import io.github.foxsoft2005.stash.lock.LocalAppLock
 import io.github.foxsoft2005.stash.ui.common.PlaceDialog
 
 @Composable
@@ -137,6 +138,16 @@ fun HomeScreen(
         if (message != null) {
             snackbar.showSnackbar(message.resolve(resources), withDismissAction = true, duration = SnackbarDuration.Long)
             backupViewModel.messageShown()
+        }
+    }
+
+    // "App lock is on" and friends.
+    val appLock = LocalAppLock.current
+    LaunchedEffect(appLock.message) {
+        val lockMessage = appLock.message
+        if (lockMessage != null) {
+            snackbar.showSnackbar(lockMessage.resolve(resources), withDismissAction = true)
+            appLock.onMessageShown()
         }
     }
 
@@ -216,6 +227,8 @@ fun HomeScreen(
                     onBackUp = backupViewModel::startExport,
                     // .stash has no registered MIME type, so pickers usually report octet-stream.
                     onRestore = { openBackup.launch(arrayOf("application/octet-stream", "*/*")) },
+                    appLockOn = appLock.enabled,
+                    onToggleAppLock = appLock.onToggle,
                 )
             }
         },

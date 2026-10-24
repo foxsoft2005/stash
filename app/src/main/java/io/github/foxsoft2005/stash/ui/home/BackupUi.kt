@@ -9,6 +9,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
+import androidx.compose.ui.state.ToggleableState
+import androidx.compose.ui.semantics.toggleableState
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material.icons.rounded.Lock
+import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.Backup
 import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material.icons.rounded.SettingsBackupRestore
@@ -42,7 +48,7 @@ import io.github.foxsoft2005.stash.ui.asString
 
 /** ⋮ next to the search bar. */
 @Composable
-fun BackupMenu(onBackUp: () -> Unit, onRestore: () -> Unit) {
+fun BackupMenu(onBackUp: () -> Unit, onRestore: () -> Unit, appLockOn: Boolean, onToggleAppLock: () -> Unit) {
     var open by remember { mutableStateOf(false) }
     Box {
         IconButton(onClick = { open = true }) {
@@ -58,6 +64,15 @@ fun BackupMenu(onBackUp: () -> Unit, onRestore: () -> Unit) {
                 text = { Text(stringResource(R.string.backup_menu_restore)) },
                 leadingIcon = { Icon(Icons.Rounded.SettingsBackupRestore, contentDescription = null) },
                 onClick = { open = false; onRestore() },
+            )
+            HorizontalDivider()
+            // A switch, shown as a checkmark; the system unlock prompt confirms either way.
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.lock_menu)) },
+                leadingIcon = { Icon(Icons.Rounded.Lock, contentDescription = null) },
+                trailingIcon = { if (appLockOn) Icon(Icons.Rounded.Check, contentDescription = null) },
+                onClick = { open = false; onToggleAppLock() },
+                modifier = Modifier.semantics { toggleableState = ToggleableState(appLockOn) },
             )
         }
     }

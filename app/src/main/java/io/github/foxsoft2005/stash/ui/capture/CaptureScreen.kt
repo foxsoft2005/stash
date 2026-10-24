@@ -56,6 +56,7 @@ import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.foxsoft2005.stash.R
+import io.github.foxsoft2005.stash.lock.LocalAppLock
 import kotlinx.coroutines.launch
 import kotlin.coroutines.cancellation.CancellationException
 
@@ -93,7 +94,8 @@ fun CaptureScreen(
 
     Surface(color = Color.Black, contentColor = Color.White, modifier = Modifier.fillMaxSize()) {
         if (hasPermission) {
-            Viewfinder(viewModel, onPhotoTaken)
+            // Never run the camera behind the lock screen; leaving the viewfinder unbinds it.
+            if (!LocalAppLock.current.locked) Viewfinder(viewModel, onPhotoTaken)
         } else {
             Column(
                 Modifier.fillMaxSize().padding(32.dp),

@@ -11,6 +11,7 @@ composeBom = "2026.09.00"
 lifecycle = "2.11.0"
 navigation3 = "1.2.0"
 room3 = "3.0.3"
+biometric = "1.1.0"
 sqlite = "2.7.1"
 camerax = "1.6.2"
 exifinterface = "1.4.1"
@@ -45,6 +46,7 @@ androidx-lifecycle-viewmodel-navigation3 = { module = "androidx.lifecycle:lifecy
 androidx-navigation3-runtime = { module = "androidx.navigation3:navigation3-runtime", version.ref = "navigation3" }
 androidx-navigation3-ui = { module = "androidx.navigation3:navigation3-ui", version.ref = "navigation3" }
 
+androidx-biometric = { module = "androidx.biometric:biometric", version.ref = "biometric" }
 androidx-room3-runtime = { module = "androidx.room3:room3-runtime", version.ref = "room3" }
 androidx-room3-compiler = { module = "androidx.room3:room3-compiler", version.ref = "room3" }
 androidx-room3-testing = { module = "androidx.room3:room3-testing", version.ref = "room3" }

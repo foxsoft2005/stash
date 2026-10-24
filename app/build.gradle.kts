@@ -98,6 +98,8 @@ dependencies {
 
     // Room 3 (KMP-first, suspend/Flow-only) with the bundled SQLite driver
     implementation(libs.androidx.room3.runtime)
+    // App lock: the system's fingerprint / face / screen-lock prompt
+    implementation(libs.androidx.biometric)
     implementation(libs.androidx.sqlite.bundled)
     ksp(libs.androidx.room3.compiler)
 
