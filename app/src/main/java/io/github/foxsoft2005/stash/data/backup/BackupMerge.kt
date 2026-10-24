@@ -36,6 +36,7 @@ fun Item.toBackupItem(photoEntry: String?, placePhotoEntry: String? = null) = Ba
     updatedAt = updatedAt,
     photo = photoEntry,
     placePhoto = placePhotoEntry,
+    checkedAt = checkedAt,
 )
 
 /** A new row ([Item.id] = 0, so Room assigns one) keeping the original timestamps. */
@@ -46,6 +47,7 @@ fun BackupItem.toItem(photoPath: String?, placePhotoPath: String? = null) = Item
     note = note,
     photoPath = photoPath,
     placePhotoPath = placePhotoPath,
+    checkedAt = checkedAt,
     lentTo = lentTo?.trim()?.ifBlank { null },
     createdAt = createdAt,
     updatedAt = updatedAt,

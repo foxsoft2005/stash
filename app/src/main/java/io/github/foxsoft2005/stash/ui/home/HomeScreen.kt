@@ -34,6 +34,7 @@ import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.ArrowDropDown
 import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.Delete
+import androidx.compose.material.icons.rounded.TaskAlt
 import androidx.compose.material.icons.rounded.EditLocationAlt
 import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material.icons.rounded.RadioButtonUnchecked
@@ -47,6 +48,8 @@ import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.Card
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.CardDefaults
@@ -112,6 +115,7 @@ fun HomeScreen(
     onCapture: () -> Unit,
     onOpenItem: (Long) -> Unit,
     onOpenPlaces: () -> Unit,
+    onReviewCheckIns: () -> Unit,
 ) {
     LaunchedEffect(placeFilter) { viewModel.setPlaceFilter(placeFilter) }
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -244,6 +248,15 @@ fun HomeScreen(
                             reminder = reminder,
                             onBackUp = backupViewModel::startExport,
                             onLater = viewModel::snoozeBackupReminder,
+                        )
+                    }
+                } else if (state.checkInCount > 0 && !state.isSearching && state.place == null) {
+                    // One card at a time: a backup matters more, the check can wait.
+                    item(span = { GridItemSpan(maxLineSpan) }, key = "check-in") {
+                        CheckInCard(
+                            count = state.checkInCount,
+                            onReview = onReviewCheckIns,
+                            onLater = viewModel::snoozeCheckIns,
                         )
                     }
                 }
@@ -660,6 +673,34 @@ private fun EmptyState(modifier: Modifier = Modifier) {
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+        }
+    }
+}
+
+/** "5 items not checked for a year · Review": offers the "Still there?" review. */
+@Composable
+private fun CheckInCard(count: Int, onReview: () -> Unit, onLater: () -> Unit) {
+    Card(
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+            contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
+        ),
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.Rounded.TaskAlt, contentDescription = null, modifier = Modifier.size(20.dp))
+                Spacer(Modifier.size(8.dp))
+                Text(pluralStringResource(R.plurals.checkin_card_title, count, count), style = MaterialTheme.typography.titleSmall)
+            }
+            Text(stringResource(R.string.checkin_card_body), style = MaterialTheme.typography.bodyMedium)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
+            ) {
+                TextButton(onClick = onLater) { Text(stringResource(R.string.reminder_later)) }
+                Button(onClick = onReview) { Text(stringResource(R.string.checkin_review)) }
+            }
         }
     }
 }

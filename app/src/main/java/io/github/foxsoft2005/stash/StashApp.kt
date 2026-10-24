@@ -7,6 +7,7 @@ import io.github.foxsoft2005.stash.ai.MlKitLabelTagger
 import io.github.foxsoft2005.stash.ai.NanoConsentStore
 import io.github.foxsoft2005.stash.ai.SmartTagger
 import io.github.foxsoft2005.stash.data.ItemRepository
+import io.github.foxsoft2005.stash.data.CheckInStore
 import io.github.foxsoft2005.stash.data.ItemSortStore
 import io.github.foxsoft2005.stash.data.PhotoStore
 import io.github.foxsoft2005.stash.data.StashDatabase
@@ -36,6 +37,7 @@ class AppContainer(context: Context) {
     private val database = StashDatabase.create(context)
     val repository = ItemRepository(database.itemDao(), photos)
     val itemSort = ItemSortStore(context)
+    val checkIns = CheckInStore(context)
     val backupStatus = BackupStatusStore(context)
     val backup = BackupManager(context, database.itemDao(), photos, backupStatus)
 

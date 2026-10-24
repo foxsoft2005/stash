@@ -19,6 +19,8 @@ import io.github.foxsoft2005.stash.data.Places
 import io.github.foxsoft2005.stash.stashContainer
 import io.github.foxsoft2005.stash.ui.capture.CaptureScreen
 import io.github.foxsoft2005.stash.ui.capture.CaptureViewModel
+import io.github.foxsoft2005.stash.ui.checkin.CheckInScreen
+import io.github.foxsoft2005.stash.ui.checkin.CheckInViewModel
 import io.github.foxsoft2005.stash.ui.edit.EditItemScreen
 import io.github.foxsoft2005.stash.ui.edit.EditItemViewModel
 import io.github.foxsoft2005.stash.ui.home.BackupViewModel
@@ -33,6 +35,7 @@ import kotlinx.serialization.Serializable
 /** The camera; [forPlacePhoto] = taking the "where it is" photo for the form underneath. */
 @Serializable data class CaptureRoute(val forPlacePhoto: Boolean = false) : NavKey
 @Serializable data object PlacesRoute : NavKey
+@Serializable data object CheckInRoute : NavKey
 @Serializable data class EditRoute(val itemId: Long? = null, val photoPath: String? = null) : NavKey
 
 @Composable
@@ -69,6 +72,7 @@ fun StashNavigation(startWithCamera: Boolean) {
                             repository = container.repository,
                             backupStatus = container.backupStatus,
                             sortStore = container.itemSort,
+                            checkInStore = container.checkIns,
                             appScope = container.appScope,
                             initialPlace = placeFilter,
                         )
@@ -79,6 +83,13 @@ fun StashNavigation(startWithCamera: Boolean) {
                     onCapture = { backStack.add(CaptureRoute()) },
                     onOpenItem = { id -> backStack.add(EditRoute(itemId = id)) },
                     onOpenPlaces = { backStack.add(PlacesRoute) },
+                    onReviewCheckIns = { backStack.add(CheckInRoute) },
+                )
+            }
+            entry<CheckInRoute> {
+                CheckInScreen(
+                    viewModel = viewModel { CheckInViewModel(container.repository, container.appScope) },
+                    onBack = { backStack.removeLastOrNull() },
                 )
             }
             entry<PlacesRoute> {

@@ -49,20 +49,37 @@ class MigrationTest {
         (0 until st.getColumnCount()).map { if (st.isNull(it)) null else st.getText(it) }
     }
 
-    @Test fun v2ToV3KeepsItemsAndAddsNoPlacePhoto() = runBlocking {
+    @Test fun v2ToLatestKeepsItems() = runBlocking {
         helper.createDatabase(2).use { it.insertPassport("document,travel wallet") }
-        helper.runMigrationsAndValidate(3, emptyList()).use { db ->
+        helper.runMigrationsAndValidate(LATEST, emptyList()).use { db ->
             assertEquals(
-                listOf("Passport", "Top drawer", "document,travel wallet", "renew 2029", "/p/a.jpg", "10", "20", null),
-                db.row("SELECT name, place, tags, note, photoPath, createdAt, updatedAt, placePhotoPath FROM items WHERE id = 1"),
+                listOf("Passport", "Top drawer", "document,travel wallet", "renew 2029", "/p/a.jpg", "10", "20", null, null),
+                db.row("SELECT name, place, tags, note, photoPath, createdAt, updatedAt, placePhotoPath, checkedAt FROM items WHERE id = 1"),
             )
         }
     }
 
-    @Test fun v1ToV3RunsEveryStep() = runBlocking {
+    @Test fun v3ToV4KeepsPlacePhoto() = runBlocking {
+        helper.createDatabase(3).use {
+            it.execSQL(
+                "INSERT INTO items (id, name, place, tags, note, photoPath, lentTo, placePhotoPath, createdAt, updatedAt) " +
+                    "VALUES (1, 'Drill', 'Garage', '', '', '/p/d.jpg', NULL, '/p/shelf.jpg', 10, 20)",
+            )
+        }
+        helper.runMigrationsAndValidate(4, emptyList()).use { db ->
+            assertEquals(listOf("Drill", "/p/shelf.jpg", null), db.row("SELECT name, placePhotoPath, checkedAt FROM items WHERE id = 1"))
+        }
+    }
+
+    @Test fun v1ToLatestRunsEveryStep() = runBlocking {
         helper.createDatabase(1).use { it.insertPassport("document travel") }
-        helper.runMigrationsAndValidate(3, listOf(MIGRATION_1_2)).use { db ->
+        helper.runMigrationsAndValidate(LATEST, listOf(MIGRATION_1_2)).use { db ->
             assertEquals(listOf("document,travel", null), db.row("SELECT tags, placePhotoPath FROM items WHERE id = 1"))
         }
+    }
+
+    private companion object {
+        /** Bump with StashDatabase.version (and add a test for the new step). */
+        const val LATEST = 4
     }
 }

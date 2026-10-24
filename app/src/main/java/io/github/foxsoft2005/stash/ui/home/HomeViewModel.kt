@@ -9,6 +9,8 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import io.github.foxsoft2005.stash.R
+import io.github.foxsoft2005.stash.data.CheckInStore
+import io.github.foxsoft2005.stash.data.CheckIns
 import io.github.foxsoft2005.stash.data.Item
 import io.github.foxsoft2005.stash.data.ItemRepository
 import io.github.foxsoft2005.stash.data.ItemSort
@@ -45,6 +47,8 @@ data class HomeUiState(
     val items: List<Item> = emptyList(),
     /** Non-null when a "back up your stash" card should show. */
     val backupReminder: BackupReminder? = null,
+    /** Items due for a "Still there?" check (0 = no card). */
+    val checkInCount: Int = 0,
     /** Batch mode: the selected items among [items]. Empty = not in batch mode. */
     val selected: List<Item> = emptyList(),
     /** Items just deleted, waiting for the Undo window to close. */
@@ -65,6 +69,7 @@ class HomeViewModel(
     private val repository: ItemRepository,
     private val backupStatus: BackupStatusStore,
     private val sortStore: ItemSortStore,
+    private val checkInStore: CheckInStore,
     /** Outlives this screen, so a pending delete still completes if the screen goes away. */
     private val appScope: CoroutineScope,
     /** Place chosen on the Places screen (kept by the navigation, so it survives process death). */
@@ -103,9 +108,10 @@ class HomeViewModel(
         repository.observeAll(),
         snapshotFlow { queryState.text.toString() },
         controls,
-        backupStatus.status,
+        // combine() takes at most 5 flows, so the two reminder settings travel together.
+        combine(backupStatus.status, checkInStore.snoozedUntil, ::Pair),
         sortStore.sort,
-    ) { stored, query, controls, status, sort ->
+    ) { stored, query, controls, (status, checkInsSnoozedUntil), sort ->
         // Items waiting for Undo are already gone as far as the user can see.
         val hidden = controls.hidden
         val all = if (hidden.isEmpty()) stored else stored.filter { it.id !in hidden }
@@ -126,6 +132,7 @@ class HomeViewModel(
             place = controls.place?.let { picked -> scope.maxByOrNull { it.updatedAt }?.place?.trim() ?: picked },
             items = visible,
             backupReminder = BackupReminders.reminder(all, status, now()),
+            checkInCount = CheckIns.cardCount(all, checkInsSnoozedUntil, now()),
             selected = controls.selection.visibleIn(visible),
             pendingDeletion = controls.pending,
             sort = sort,
@@ -147,6 +154,9 @@ class HomeViewModel(
     }
 
     fun setSort(sort: ItemSort) = sortStore.set(sort)
+
+    /** "Later" on the "Still there?" card. */
+    fun snoozeCheckIns() = checkInStore.snooze(CheckIns.snoozedUntil(now()))
 
     /** "Later" on the backup card. */
     fun snoozeBackupReminder() = backupStatus.snooze(BackupReminders.snoozedUntil(now()))
