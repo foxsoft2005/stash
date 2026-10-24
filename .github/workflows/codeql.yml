@@ -1,0 +1,76 @@
+# CodeQL code scanning ("advanced setup"). Replaces GitHub's default setup, whose
+# automatic Gradle build reused cached compiler output whenever no Kotlin had
+# changed, so CodeQL saw no code and failed ("could not process any code written
+# in Java/Kotlin"). Here the app is always really compiled, with the build cache off.
+# Results show under Security › Code scanning, same as before.
+name: CodeQL
+
+on:
+  push:
+    branches: [main]
+    paths-ignore: ['**/*.md', 'LICENSE', '.github/ISSUE_TEMPLATE/**']
+  pull_request:
+    branches: [main]
+    paths-ignore: ['**/*.md', 'LICENSE', '.github/ISSUE_TEMPLATE/**']
+  schedule:
+    - cron: '17 3 * * 1' # weekly (Monday): new queries can find issues in unchanged code
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+jobs:
+  analyze:
+    name: Analyze (${{ matrix.language }})
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      security-events: write # upload results to code scanning
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - language: actions # the workflows themselves
+            build-mode: none
+          - language: java-kotlin
+            build-mode: manual
+    steps:
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up JDK 25
+        if: matrix.language == 'java-kotlin'
+        uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+        with:
+          distribution: temurin
+          java-version: '25'
+
+      # Downloads only (dependencies, wrapper); CodeQL runs never write the cache.
+      - name: Set up Gradle
+        if: matrix.language == 'java-kotlin'
+        uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
+        with:
+          cache-provider: basic
+          cache-read-only: true
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@9b3254085494b55a0f7c4c2b3d2d52cc712ce370 # v4.39.1
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: ${{ matrix.build-mode }}
+
+      # CodeQL reads Kotlin by watching the compiler run, so the build cache must be
+      # off: a cache hit skips the compiler and CodeQL would see nothing.
+      - name: Build (CodeQL watches the Kotlin compiler)
+        if: matrix.build-mode == 'manual'
+        run: ./gradlew assembleDebug --no-build-cache --no-configuration-cache --stacktrace
+
+      - name: Analyze
+        uses: github/codeql-action/analyze@9b3254085494b55a0f7c4c2b3d2d52cc712ce370 # v4.39.1
+        with:
+          category: /language:${{ matrix.language }}
