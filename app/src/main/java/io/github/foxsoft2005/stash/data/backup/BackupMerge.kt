@@ -26,7 +26,7 @@ object BackupMerge {
     }
 }
 
-fun Item.toBackupItem(photoEntry: String?) = BackupItem(
+fun Item.toBackupItem(photoEntry: String?, placePhotoEntry: String? = null) = BackupItem(
     name = name,
     place = place,
     tags = tagList,
@@ -35,15 +35,17 @@ fun Item.toBackupItem(photoEntry: String?) = BackupItem(
     createdAt = createdAt,
     updatedAt = updatedAt,
     photo = photoEntry,
+    placePhoto = placePhotoEntry,
 )
 
 /** A new row ([Item.id] = 0, so Room assigns one) keeping the original timestamps. */
-fun BackupItem.toItem(photoPath: String?) = Item(
+fun BackupItem.toItem(photoPath: String?, placePhotoPath: String? = null) = Item(
     name = name.trim(),
     place = place.trim(),
     tags = Tags.join(tags),
     note = note,
     photoPath = photoPath,
+    placePhotoPath = placePhotoPath,
     lentTo = lentTo?.trim()?.ifBlank { null },
     createdAt = createdAt,
     updatedAt = updatedAt,

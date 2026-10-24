@@ -53,6 +53,10 @@ class EditItemViewModel(
         private set
     var photoPath by mutableStateOf(newPhotoPath)
         private set
+
+    /** Optional second photo: where the item is. */
+    var placePhotoPath by mutableStateOf<String?>(null)
+        private set
     var aiState by mutableStateOf<AiState>(AiState.Idle)
         private set
     var showErrors by mutableStateOf(false)
@@ -86,6 +90,7 @@ class EditItemViewModel(
         val item = repository.get(id) ?: return
         original = item
         photoPath = item.photoPath
+        placePhotoPath = item.placePhotoPath
         name.setTextAndPlaceCursorAtEnd(item.name)
         place.setTextAndPlaceCursorAtEnd(item.place)
         lentTo.setTextAndPlaceCursorAtEnd(item.lentTo.orEmpty())
@@ -108,6 +113,26 @@ class EditItemViewModel(
     }
 
     fun usePlace(value: String) = place.setTextAndPlaceCursorAtEnd(value)
+
+    /** The saved place photo; anything else in [placePhotoPath] is new and not saved yet. */
+    private val savedPlacePhoto: String? get() = original?.placePhotoPath
+
+    /** A place photo was just taken (first one, or a retake). */
+    fun setPlacePhoto(path: String) {
+        discardUnsavedPlacePhoto()
+        placePhotoPath = path
+    }
+
+    /** The file is only deleted on Save, so leaving without saving keeps the old photo. */
+    fun removePlacePhoto() {
+        discardUnsavedPlacePhoto()
+        placePhotoPath = null
+    }
+
+    private fun discardUnsavedPlacePhoto() {
+        val current = placePhotoPath
+        if (current != null && current != savedPlacePhoto) appScope.launch { photos.delete(current) }
+    }
 
     fun removeTag(tag: String) {
         tags = tags - tag
@@ -164,8 +189,11 @@ class EditItemViewModel(
                     lentTo = lentTo.text.toString().trim().ifBlank { null },
                     note = note.text.toString().trim(),
                     tags = Tags.join(tags),
+                    placePhotoPath = placePhotoPath,
                 ),
             )
+            // Replaced or removed: the old place photo is no longer referenced.
+            savedPlacePhoto?.takeIf { it != placePhotoPath }?.let { photos.delete(it) }
             saved = true
             onSaved()
         }
@@ -179,12 +207,14 @@ class EditItemViewModel(
         }
     }
 
-    /** A new photo that was never saved shouldn't linger on disk. */
+    /** New photos that were never saved shouldn't linger on disk. */
     override fun onCleared() {
-        if (isNew && !saved) {
+        if (saved) return
+        // viewModelScope is already cancelled here, so clean up on the app scope.
+        if (isNew) {
             val path = photoPath
-            // viewModelScope is already cancelled here, so clean up on the app scope.
             appScope.launch { photos.delete(path) }
         }
+        discardUnsavedPlacePhoto()
     }
 }

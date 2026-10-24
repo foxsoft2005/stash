@@ -9,6 +9,7 @@ import androidx.room3.PrimaryKey
  * [tags] is a comma-separated, normalized keyword list (AI-suggested + user-edited);
  * always read and write it through [Tags] / [tagList].
  * [lentTo] is non-null when the item is currently lent out to someone.
+ * [placePhotoPath] is an optional second photo: where the item is (the shelf, the box).
  */
 @Entity(tableName = "items")
 data class Item(
@@ -19,6 +20,7 @@ data class Item(
     val note: String = "",
     val photoPath: String? = null,
     val lentTo: String? = null,
+    val placePhotoPath: String? = null,
     val createdAt: Long = System.currentTimeMillis(),
     val updatedAt: Long = System.currentTimeMillis(),
 ) {
