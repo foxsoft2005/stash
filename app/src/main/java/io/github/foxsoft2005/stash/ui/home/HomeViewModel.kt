@@ -198,6 +198,26 @@ class HomeViewModel(
         appScope.launch { repository.deleteAll(pending.items) }
     }
 
+    /** One-tap places for the "Move to…" dialog. */
+    val recentPlaces: StateFlow<List<String>> = repository.observeRecentPlaces()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+    /** Batch "Move to…". Items moved out of the place being browsed simply leave the grid. */
+    fun moveSelected(place: String) {
+        val target = place.trim()
+        val items = uiState.value.selected
+        if (target.isEmpty() || items.isEmpty()) return
+        clearSelection()
+        viewModelScope.launch {
+            val moved = repository.moveTo(items, target)
+            message = if (moved > 0) {
+                UiText.plural(R.plurals.selection_moved, moved, target)
+            } else {
+                UiText.of(R.string.selection_already_there, target)
+            }
+        }
+    }
+
     fun markSelectedReturned() {
         val items = uiState.value.selected
         clearSelection()

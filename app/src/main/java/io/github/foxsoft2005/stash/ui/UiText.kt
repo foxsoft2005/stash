@@ -14,21 +14,24 @@ import androidx.compose.ui.platform.LocalResources
 sealed interface UiText {
     data class Res(@StringRes val id: Int, val args: List<Any> = emptyList()) : UiText
 
-    /** A count in a sentence ("3 items" / "3 вещи"); [count] picks the plural form and fills %d. */
-    data class Plural(@PluralsRes val id: Int, val count: Int) : UiText
+    /**
+     * A count in a sentence ("3 items" / "3 вещи"); [count] picks the plural form and is
+     * the first format argument (%d or %1${'$'}d); [args] follow it (%2${'$'}s, …).
+     */
+    data class Plural(@PluralsRes val id: Int, val count: Int, val args: List<Any> = emptyList()) : UiText
 
     /** Several sentences shown together, separated by spaces. */
     data class Join(val parts: List<UiText>) : UiText
 
     fun resolve(resources: Resources): String = when (this) {
         is Res -> resources.getString(id, *args.toTypedArray())
-        is Plural -> resources.getQuantityString(id, count, count)
+        is Plural -> resources.getQuantityString(id, count, count, *args.toTypedArray())
         is Join -> parts.joinToString(" ") { it.resolve(resources) }
     }
 
     companion object {
         fun of(@StringRes id: Int, vararg args: Any): UiText = Res(id, args.toList())
-        fun plural(@PluralsRes id: Int, count: Int): UiText = Plural(id, count)
+        fun plural(@PluralsRes id: Int, count: Int, vararg args: Any): UiText = Plural(id, count, args.toList())
     }
 }
 
