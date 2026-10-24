@@ -5,7 +5,14 @@
 
 Snap a photo when you put something away. Months later, ask *"where's my passport?"* and get the answer: **Top drawer, blue box**.
 
-Everything stays on the phone. There's no account, no server, and no `INTERNET` permission. Android's Google Drive backup is switched off for the app's data too; only direct phone-to-phone transfer (Android 12+) can copy your stash to a new phone.
+Everything stays on the phone. There's no account, no server, and no `INTERNET` permission, so Stash can't open a network connection at all. Android's Google Drive backup is switched off for the app's data too; only direct phone-to-phone transfer (Android 12+) can copy your stash to a new phone.
+
+<details><summary>How that's enforced, and what still talks to Google</summary>
+
+- **ML Kit's libraries ask for `INTERNET`** (to upload usage statistics to Google). Stash strips it from the built app, CI fails if any APK contains it again, and the release workflow refuses to publish one. CI also runs ML Kit offline on an emulator and forces its upload jobs, to prove that just fails quietly.
+- **Gemini Nano isn't part of Stash.** It's run by **AICore**, a Google system app on supported phones. If you agree to the download, Stash asks AICore to fetch the model; AICore does the download itself. Photos are passed to AICore on the phone for recognition, never to the network by Stash. What AICore does is up to Google: they describe it as on-device processing inside Android's Private Compute Core.
+- `ACCESS_NETWORK_STATE` is still present (added by ML Kit): it can only tell whether the phone is online, and Android 14+ requires it for the background jobs ML Kit schedules.
+</details>
 
 ## Install
 

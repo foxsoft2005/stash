@@ -23,6 +23,9 @@ android {
         // Set from the git tag by the release workflow (v1.2.3 -> "1.2.3", 1002003).
         versionCode = providers.environmentVariable("STASH_VERSION_CODE").orNull?.toInt() ?: 1
         versionName = providers.environmentVariable("STASH_VERSION_NAME").orNull ?: "0.1.0-dev"
+
+        // On-device tests in src/androidTest (run in CI on the emulator).
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     signingConfigs {
@@ -118,4 +121,8 @@ dependencies {
     implementation(libs.mlkit.image.labeling)
 
     testImplementation(libs.junit)
+
+    // On-device tests only; nothing here goes into the app.
+    androidTestImplementation(libs.androidx.test.runner)
+    androidTestImplementation(libs.androidx.test.ext.junit)
 }

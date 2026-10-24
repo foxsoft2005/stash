@@ -48,7 +48,15 @@ jobs:
       # Release is built too (signed with the debug key, so no secrets needed): it
       # runs R8 code shrinking, which can break things a debug build never touches.
       - name: Build debug and release APKs
-        run: ./gradlew assembleDebug assembleRelease --stacktrace
+        run: ./gradlew assembleDebug assembleRelease assembleDebugAndroidTest --stacktrace
+
+      # Stash promises it can't use the internet. Libraries can add permissions
+      # behind our back (ML Kit adds INTERNET), so check the finished APKs.
+      - name: No internet permission in the built apps
+        run: |
+          .github/scripts/check-permissions.sh \
+            app/build/outputs/apk/debug/app-debug.apk \
+            app/build/outputs/apk/release/app-release.apk
 
       - name: Unit tests
         run: ./gradlew testDebugUnitTest --stacktrace
@@ -133,7 +141,7 @@ jobs:
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
 
-      - name: Launch test on emulator (debug + release builds)
+      - name: Launch and offline tests on emulator
         uses: reactivecircus/android-emulator-runner@v2.38.0
         with:
           api-level: 35
@@ -144,6 +152,7 @@ jobs:
           script: |
             .github/scripts/smoke-test.sh app/build/outputs/apk/debug/app-debug.apk "Debug build"
             .github/scripts/smoke-test.sh app/build/outputs/apk/release/app-release.apk "Release build (R8)"
+            .github/scripts/offline-test.sh
 
       # The R8 build, signed with the debug key: install it to test shrinking on a
       # phone (uninstall real releases first; signatures differ). Not a release.

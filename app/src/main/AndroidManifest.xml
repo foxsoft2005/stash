@@ -1,13 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
 
     <uses-feature android:name="android.hardware.camera.any" android:required="false" />
     <uses-permission android:name="android.permission.CAMERA" />
 
-    <!-- No INTERNET permission: the app cannot send your photos anywhere.
-         (Gemini Nano is downloaded and run by the system's AICore service, not by this app.)
-         Android's own cloud backup is switched off too (see res/xml/*_rules.xml);
-         only direct phone-to-phone transfer on Android 12+ is allowed. -->
+    <!-- No INTERNET permission, so this app cannot open any network connection.
+         ML Kit's libraries ask for INTERNET to upload usage statistics to Google
+         (vision-internal-vkp, datatransport); tools:node="remove" strips it from the
+         merged manifest, and CI fails if the built APK ever contains it again.
+         ACCESS_NETWORK_STATE (also added by those libraries) stays: it can only
+         read whether the phone is online, and Android 14+ requires it for the
+         upload jobs those libraries schedule (which then simply fail).
+         Gemini Nano is downloaded and run by the system's AICore service, not by
+         this app. Android's own cloud backup is switched off too (see
+         res/xml/*_rules.xml); only direct phone-to-phone transfer on Android 12+. -->
+    <uses-permission android:name="android.permission.INTERNET" tools:node="remove" />
 
     <application
         android:name=".StashApp"
