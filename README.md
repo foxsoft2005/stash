@@ -12,7 +12,11 @@ Everything stays on the phone. There's no account, no server, and no `INTERNET` 
 Download the latest `stash-x.y.z.apk` from [**Releases**](https://github.com/foxsoft2005/stash/releases) and open it on your phone. Android will ask you to allow *Install unknown apps* for your browser or file manager. Requires Android 8.0 or newer.
 
 - **Updates:** Stash has no internet permission, so it can't check for updates itself. Add `https://github.com/foxsoft2005/stash` to [Obtainium](https://github.com/ImranR98/Obtainium) to get them automatically.
-- **Check it's genuine:** every release lists the APK's SHA-256 and the signing certificate's fingerprint. The certificate is the same for every release; Android itself refuses an update signed with a different one.
+- **Check it's genuine:** every release lists the APK's SHA-256 and the signing certificate's fingerprint. The certificate is the same for every release, and must be:
+  ```
+  cb56a5796955715cf01eb4f1f1341d3b26f7e8e87dbaf677cf3744c207ceb491
+  ```
+  Check a downloaded APK with `apksigner verify --print-certs stash-x.y.z.apk` (Android SDK build-tools) or the [AppVerifier](https://github.com/soupslurpr/AppVerifier) app. Android itself refuses an update signed with a different certificate.
 - **Brazil, Indonesia, Singapore, Thailand:** since 30 Sept 2026 Android requires apps from developers registered with Google. Stash isn't registered yet, so there you'll need Android's *advanced flow* for unverified apps (or `adb install`). Google plans to extend this worldwide in 2027.
 
 ## How it works
