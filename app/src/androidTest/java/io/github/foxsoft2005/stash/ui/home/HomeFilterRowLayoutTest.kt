@@ -15,6 +15,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.test.getUnclippedBoundsInRoot
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.performClick
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpRect
@@ -47,7 +48,7 @@ class HomeFilterRowLayoutTest {
     private fun overlaps(a: DpRect, b: DpRect) =
         a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom
 
-    private fun checkLayout(language: String, width: Dp, fontScale: Float) {
+    private fun checkLayout(language: String, width: Dp, fontScale: Float, lentOnly: Boolean = false, expectOneLine: Boolean = true) {
         val res = resources(language)
         compose.setContent {
             val density = LocalDensity.current
@@ -58,7 +59,7 @@ class HomeFilterRowLayoutTest {
                             allLabel = res.getString(R.string.home_filter_all, 999),
                             lentLabel = res.getString(R.string.home_filter_lent, 99),
                             placesLabel = res.getString(R.string.places_title),
-                            lentOnly = false,
+                            lentOnly = lentOnly,
                             onAll = {}, onLentOnly = {}, onPlaces = {},
                             sortButton = {
                                 IconButton(onClick = {}) { Icon(Icons.AutoMirrored.Rounded.Sort, contentDescription = null) }
@@ -69,9 +70,15 @@ class HomeFilterRowLayoutTest {
             }
         }
         val sort = compose.onNodeWithTag(HomeFilterTags.SORT).getUnclippedBoundsInRoot()
-        val where = "[$language, ${width.value.toInt()}dp, font ×$fontScale]"
+        val where = "[$language, ${width.value.toInt()}dp, font ×$fontScale, lentOnly=$lentOnly]"
         assertTrue("sort button off screen $where: $sort", sort.right <= width + 0.5.dp)
-        for (tag in listOf(HomeFilterTags.ALL, HomeFilterTags.LENT, HomeFilterTags.PLACES)) {
+        // One line wherever it fits: the chips share a row with the sort button.
+        if (expectOneLine) {
+            val places = compose.onNodeWithTag(HomeFilterTags.PLACES).getUnclippedBoundsInRoot()
+            val filter = compose.onNodeWithTag(HomeFilterTags.FILTER).getUnclippedBoundsInRoot()
+            assertTrue("chips wrapped although they fit $where: $filter / $places", places.top < filter.bottom)
+        }
+        for (tag in listOf(HomeFilterTags.FILTER, HomeFilterTags.PLACES)) {
             val chip = compose.onNodeWithTag(tag).getUnclippedBoundsInRoot()
             assertTrue("$tag runs under the sort button $where: $chip vs $sort", !overlaps(chip, sort))
             assertTrue("$tag runs off the edge $where: $chip", chip.right <= width + 0.5.dp && chip.left >= 0.dp)
@@ -81,6 +88,25 @@ class HomeFilterRowLayoutTest {
     // Widths are the row itself: the grid has 16dp padding on each side, so a
     // typical small 360dp phone gives 328dp, and the narrowest (320dp) gives 288dp.
     @Test fun russianOnSmallPhone() = checkLayout("ru", 328.dp, 1f)
-    @Test fun russianLargeFontNarrowestPhone() = checkLayout("ru", 288.dp, 1.3f)
-    @Test fun englishLargeFontNarrowestPhone() = checkLayout("en", 288.dp, 1.3f)
+    @Test fun russianLentOutOnSmallPhone() = checkLayout("ru", 328.dp, 1f, lentOnly = true)
+    @Test fun englishLentOutOnSmallPhone() = checkLayout("en", 328.dp, 1f, lentOnly = true)
+    // The extreme case may wrap, but must never overlap or overflow.
+    @Test fun russianLargeFontNarrowestPhone() = checkLayout("ru", 288.dp, 1.3f, lentOnly = true, expectOneLine = false)
+    @Test fun englishLargeFontNarrowestPhone() = checkLayout("en", 288.dp, 1.3f, lentOnly = true, expectOneLine = false)
+
+    @Test fun menuSwitchesBetweenAllAndLentOut() {
+        var lentOnly = false
+        compose.setContent {
+            MaterialTheme {
+                HomeFilterRow(
+                    allLabel = "All 12", lentLabel = "Lent out 3", placesLabel = "Places",
+                    lentOnly = lentOnly, onAll = { lentOnly = false }, onLentOnly = { lentOnly = true },
+                    onPlaces = {}, sortButton = null,
+                )
+            }
+        }
+        compose.onNodeWithTag(HomeFilterTags.FILTER).performClick()
+        compose.onNodeWithTag(HomeFilterTags.FILTER_LENT).performClick()
+        assertTrue("choosing Lent out in the menu should switch the filter", lentOnly)
+    }
 }
