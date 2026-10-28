@@ -1,5 +1,6 @@
 package io.github.foxsoft2005.stash.ui.edit
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -72,6 +73,8 @@ fun EditItemScreen(
     placePhotoResult: String?,
     onPlacePhotoConsumed: () -> Unit,
     onTakePlacePhoto: () -> Unit,
+    /** Shows a photo full screen (pinch to zoom). */
+    onOpenPhoto: (path: String, description: String?) -> Unit,
     onDone: () -> Unit,
     onBack: () -> Unit,
 ) {
@@ -123,6 +126,7 @@ fun EditItemScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             viewModel.photoPath?.let { path ->
+                val itemName = viewModel.name.text.toString().ifBlank { null }
                 AsyncImage(
                     model = path,
                     contentDescription = null,
@@ -130,7 +134,8 @@ fun EditItemScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .heightIn(max = 280.dp)
-                        .clip(RoundedCornerShape(20.dp)),
+                        .clip(RoundedCornerShape(20.dp))
+                        .clickable(onClickLabel = stringResource(R.string.photo_open)) { onOpenPhoto(path, itemName) },
                 )
             }
 
@@ -170,6 +175,7 @@ fun EditItemScreen(
                 path = viewModel.placePhotoPath,
                 onTake = onTakePlacePhoto,
                 onRemove = viewModel::removePlacePhoto,
+                onOpen = { onOpenPhoto(it, viewModel.place.text.toString().ifBlank { null }) },
             )
 
             Text(stringResource(R.string.edit_keywords_title), style = MaterialTheme.typography.labelLarge)
@@ -324,7 +330,7 @@ private fun AiStatusLine(state: AiState) {
 
 /** The optional "where it is" photo: an Add button, or the photo with Retake and Remove. */
 @Composable
-private fun PlacePhoto(path: String?, onTake: () -> Unit, onRemove: () -> Unit) {
+private fun PlacePhoto(path: String?, onTake: () -> Unit, onRemove: () -> Unit, onOpen: (String) -> Unit) {
     if (path == null) {
         OutlinedButton(onClick = onTake, modifier = Modifier.fillMaxWidth()) {
             Icon(Icons.Rounded.AddAPhoto, contentDescription = null, modifier = Modifier.size(18.dp))
@@ -343,7 +349,8 @@ private fun PlacePhoto(path: String?, onTake: () -> Unit, onRemove: () -> Unit) 
                 modifier = Modifier
                     .fillMaxWidth()
                     .heightIn(max = 220.dp)
-                    .clip(RoundedCornerShape(16.dp)),
+                    .clip(RoundedCornerShape(16.dp))
+                    .clickable(onClickLabel = stringResource(R.string.photo_open)) { onOpen(path) },
             )
             Row(
                 Modifier
