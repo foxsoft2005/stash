@@ -53,6 +53,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import io.github.foxsoft2005.stash.R
 import io.github.foxsoft2005.stash.data.Item
+import io.github.foxsoft2005.stash.ui.common.ConfirmDeleteDialog
 import io.github.foxsoft2005.stash.ui.common.PlaceDialog
 
 /** "Still there?": one item at a time, answered with Still there / Moved… / Gone. */
@@ -79,6 +80,19 @@ fun CheckInScreen(viewModel: CheckInViewModel, onBack: () -> Unit) {
 
     var moving by rememberSaveable { mutableStateOf(false) }
     val current = state.current
+
+    var confirmingGone by rememberSaveable { mutableStateOf(false) }
+    if (confirmingGone && current != null) {
+        ConfirmDeleteDialog(
+            title = stringResource(R.string.delete_item_title, current.name),
+            body = stringResource(R.string.delete_items_body),
+            onConfirm = {
+                confirmingGone = false
+                viewModel.gone()
+            },
+            onDismiss = { confirmingGone = false },
+        )
+    }
     if (moving && current != null) {
         val recentPlaces by viewModel.recentPlaces.collectAsStateWithLifecycle()
         PlaceDialog(
@@ -124,7 +138,7 @@ fun CheckInScreen(viewModel: CheckInViewModel, onBack: () -> Unit) {
                 Answers(
                     onStillThere = viewModel::stillThere,
                     onMoved = { moving = true },
-                    onGone = viewModel::gone,
+                    onGone = { confirmingGone = true },
                 )
             }
         },

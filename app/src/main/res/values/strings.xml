@@ -94,6 +94,12 @@
         <item quantity="other">Deleted %d items</item>
     </plurals>
     <string name="action_undo">Undo</string>
+    <plurals name="delete_items_title">
+        <item quantity="one">Delete %d item?</item>
+        <item quantity="other">Delete %d items?</item>
+    </plurals>
+    <string name="delete_item_title">Delete “%1$s”?</string>
+    <string name="delete_items_body">Photos and places are removed from this phone. You can still undo for a few seconds.</string>
     <string name="selection_move">Move to…</string>
     <plurals name="move_title">
         <item quantity="one">Move %d item</item>
