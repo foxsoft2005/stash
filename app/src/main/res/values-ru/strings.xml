@@ -147,6 +147,13 @@
     <string name="lock_disabled">Блокировка выключена.</string>
     <string name="lock_needs_screen_lock">Сначала включите блокировку экрана (PIN-код, графический ключ или пароль) в настройках телефона.</string>
 
+    <!-- Поделиться местом -->
+    <string name="share_action">Поделиться, где лежит</string>
+    <string name="share_as_text">Отправить текстом</string>
+    <string name="share_with_photos">Отправить с фото</string>
+    <string name="share_title">Поделиться: «%1$s»</string>
+    <string name="share_text_lent">%1$s → одолжено: %2$s (обычно: %3$s)</string>
+
     <!-- Фото на весь экран -->
     <string name="photo_open">Открыть фото на весь экран</string>
     <string name="photo_close">Закрыть фото</string>
