@@ -11,6 +11,7 @@ import androidx.lifecycle.viewModelScope
 import io.github.foxsoft2005.stash.ai.NanoState
 import io.github.foxsoft2005.stash.ai.SmartTagger
 import io.github.foxsoft2005.stash.ai.TagSource
+import io.github.foxsoft2005.stash.data.Duplicates
 import io.github.foxsoft2005.stash.data.Item
 import io.github.foxsoft2005.stash.data.ItemRepository
 import io.github.foxsoft2005.stash.data.PhotoStore
@@ -18,8 +19,12 @@ import io.github.foxsoft2005.stash.data.Tags
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+
+/** "You already have “Passport”": [first] is the most recently changed match. */
+data class DuplicateWarning(val name: String, val first: Item, val others: Int)
 
 sealed interface AiState {
     data object Idle : AiState
@@ -61,6 +66,11 @@ class EditItemViewModel(
         private set
     var showErrors by mutableStateOf(false)
         private set
+
+    /** Non-null while asking "You already have …: open it, or save anyway?". */
+    var duplicate by mutableStateOf<DuplicateWarning?>(null)
+        private set
+    private var duplicateConfirmed = false
 
     /** The one-time "download Gemini Nano?" dialog. */
     var showNanoPrompt by mutableStateOf(false)
@@ -181,6 +191,14 @@ class EditItemViewModel(
             return
         }
         viewModelScope.launch {
+            val newName = name.text.toString().trim()
+            if (!duplicateConfirmed && Duplicates.shouldCheck(original?.name, newName)) {
+                val matches = Duplicates.of(repository.observeAll().first(), newName, exceptId = original?.id)
+                if (matches.isNotEmpty()) {
+                    duplicate = DuplicateWarning(newName, matches.first(), others = matches.size - 1)
+                    return@launch
+                }
+            }
             val base = original ?: Item(name = "", place = "", photoPath = photoPath)
             repository.save(
                 base.copy(
@@ -197,6 +215,17 @@ class EditItemViewModel(
             saved = true
             onSaved()
         }
+    }
+
+    /** "Save anyway": a second one on purpose (e.g. spare keys in two places). */
+    fun saveAnyway(onSaved: () -> Unit) {
+        duplicateConfirmed = true
+        duplicate = null
+        save(onSaved)
+    }
+
+    fun dismissDuplicate() {
+        duplicate = null
     }
 
     fun delete(onDeleted: () -> Unit) {

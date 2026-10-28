@@ -55,6 +55,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
@@ -75,6 +76,8 @@ fun EditItemScreen(
     onTakePlacePhoto: () -> Unit,
     /** Shows a photo full screen (pinch to zoom). */
     onOpenPhoto: (path: String, description: String?) -> Unit,
+    /** "Open existing" in the duplicate warning. */
+    onOpenExisting: (itemId: Long) -> Unit,
     onDone: () -> Unit,
     onBack: () -> Unit,
 ) {
@@ -232,6 +235,29 @@ fun EditItemScreen(
 
             Spacer(Modifier.size(8.dp))
         }
+    }
+
+    viewModel.duplicate?.let { dup ->
+        AlertDialog(
+            onDismissRequest = viewModel::dismissDuplicate,
+            title = { Text(stringResource(R.string.dup_title, dup.name)) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(stringResource(R.string.dup_where, dup.first.place))
+                    if (dup.first.isLent) Text(stringResource(R.string.home_lent_to, dup.first.lentTo.orEmpty()))
+                    if (dup.others > 0) Text(pluralStringResource(R.plurals.dup_more, dup.others, dup.others))
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { viewModel.saveAnyway(onSaved = onDone) }) { Text(stringResource(R.string.dup_save_anyway)) }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    viewModel.dismissDuplicate()
+                    onOpenExisting(dup.first.id)
+                }) { Text(stringResource(R.string.dup_open_existing)) }
+            },
+        )
     }
 
     if (viewModel.showNanoPrompt) {

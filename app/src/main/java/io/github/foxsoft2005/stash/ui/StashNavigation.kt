@@ -145,6 +145,11 @@ fun StashNavigation(startWithCamera: Boolean) {
                     onPlacePhotoConsumed = { placePhotoResult = null },
                     onTakePlacePhoto = { backStack.add(CaptureRoute(forPlacePhoto = true)) },
                     onOpenPhoto = { path, description -> backStack.add(PhotoRoute(path, description)) },
+                    // Swap this form for the existing item (an unsaved new photo is discarded).
+                    onOpenExisting = { id ->
+                        backStack.removeLastOrNull()
+                        backStack.add(EditRoute(itemId = id))
+                    },
                     onDone = ::popToHome,
                     onBack = { backStack.removeLastOrNull() },
                 )

@@ -160,6 +160,14 @@
     <string name="edit_lent_to_label">Lent to (optional)</string>
     <string name="edit_returned">Returned</string>
     <string name="edit_note_label">Note (optional)</string>
+    <string name="dup_title">You already have “%1$s”</string>
+    <string name="dup_where">It\'s in “%1$s”.</string>
+    <plurals name="dup_more">
+        <item quantity="one">%d more item has this name.</item>
+        <item quantity="other">%d more items have this name.</item>
+    </plurals>
+    <string name="dup_open_existing">Open existing</string>
+    <string name="dup_save_anyway">Save anyway</string>
     <string name="edit_delete_title">Delete this item?</string>
     <string name="edit_delete_body">The photo and its location will be removed from this phone.</string>
 
