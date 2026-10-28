@@ -104,6 +104,14 @@
         <item quantity="other">Удалено %d вещи</item>
     </plurals>
     <string name="action_undo">Отменить</string>
+    <plurals name="delete_items_title">
+        <item quantity="one">Удалить %d вещь?</item>
+        <item quantity="few">Удалить %d вещи?</item>
+        <item quantity="many">Удалить %d вещей?</item>
+        <item quantity="other">Удалить %d вещи?</item>
+    </plurals>
+    <string name="delete_item_title">Удалить «%1$s»?</string>
+    <string name="delete_items_body">Фото и места хранения будут удалены с этого телефона. Несколько секунд удаление ещё можно отменить.</string>
     <string name="selection_move">Переместить…</string>
     <plurals name="move_title">
         <item quantity="one">Переместить %d вещь</item>

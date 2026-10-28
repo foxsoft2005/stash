@@ -104,6 +104,7 @@ import io.github.foxsoft2005.stash.R
 import io.github.foxsoft2005.stash.data.Item
 import io.github.foxsoft2005.stash.data.ItemSort
 import io.github.foxsoft2005.stash.lock.LocalAppLock
+import io.github.foxsoft2005.stash.ui.common.ConfirmDeleteDialog
 import io.github.foxsoft2005.stash.ui.common.PlaceDialog
 
 @Composable
@@ -183,6 +184,21 @@ fun HomeScreen(
 
     BackupDialogs(backupViewModel, onChooseExportFile = { name -> saveBackup.launch(name) })
 
+    // "Delete 3 items?" first; the Undo snackbar afterwards is a second safety net.
+    var confirmingDelete by rememberSaveable { mutableStateOf(false) }
+    if (confirmingDelete && state.isSelecting) {
+        val count = state.selected.size
+        ConfirmDeleteDialog(
+            title = pluralStringResource(R.plurals.delete_items_title, count, count),
+            body = stringResource(R.string.delete_items_body),
+            onConfirm = {
+                confirmingDelete = false
+                viewModel.deleteSelected()
+            },
+            onDismiss = { confirmingDelete = false },
+        )
+    }
+
     var moving by rememberSaveable { mutableStateOf(false) }
     if (moving && state.isSelecting) {
         val recentPlaces by viewModel.recentPlaces.collectAsStateWithLifecycle()
@@ -209,7 +225,7 @@ fun HomeScreen(
                     onSelectAll = viewModel::selectAll,
                     onMarkReturned = viewModel::markSelectedReturned,
                     onMove = { moving = true },
-                    onDelete = viewModel::deleteSelected,
+                    onDelete = { confirmingDelete = true },
                 )
             } else Row(
                 modifier = Modifier
