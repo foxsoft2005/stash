@@ -21,6 +21,13 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.input.TextFieldLineLimits
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import io.github.foxsoft2005.stash.share.ItemSharing
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material.icons.rounded.Image
+import androidx.compose.material.icons.rounded.ChatBubbleOutline
+import androidx.compose.material.icons.rounded.Share
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.AddAPhoto
@@ -102,6 +109,7 @@ fun EditItemScreen(
                 },
                 actions = {
                     if (!viewModel.isNew) {
+                        ShareMenu(viewModel)
                         IconButton(onClick = { confirmDelete = true }) {
                             Icon(Icons.Rounded.Delete, contentDescription = stringResource(R.string.action_delete))
                         }
@@ -391,6 +399,45 @@ private fun PlacePhoto(path: String?, onTake: () -> Unit, onRemove: () -> Unit, 
                     Icon(Icons.Rounded.Close, contentDescription = stringResource(R.string.edit_place_photo_remove))
                 }
             }
+        }
+    }
+}
+
+/**
+ * "Share where it is": as text ("Passport → Top drawer"), or with the photos too.
+ * Shares what's on screen, so a just-typed new place goes out as well.
+ */
+@Composable
+private fun ShareMenu(viewModel: EditItemViewModel) {
+    val context = LocalContext.current
+    var open by remember { mutableStateOf(false) }
+    val photos = listOfNotNull(viewModel.photoPath, viewModel.placePhotoPath)
+    fun share(withPhotos: Boolean) {
+        open = false
+        ItemSharing.share(
+            context,
+            name = viewModel.name.text.toString(),
+            place = viewModel.place.text.toString(),
+            lentTo = viewModel.lentTo.text.toString(),
+            note = viewModel.note.text.toString(),
+            photos = if (withPhotos) photos else emptyList(),
+        )
+    }
+    Box {
+        IconButton(onClick = { if (photos.isEmpty()) share(withPhotos = false) else open = true }) {
+            Icon(Icons.Rounded.Share, contentDescription = stringResource(R.string.share_action))
+        }
+        DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.share_as_text)) },
+                leadingIcon = { Icon(Icons.Rounded.ChatBubbleOutline, contentDescription = null) },
+                onClick = { share(withPhotos = false) },
+            )
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.share_with_photos)) },
+                leadingIcon = { Icon(Icons.Rounded.Image, contentDescription = null) },
+                onClick = { share(withPhotos = true) },
+            )
         }
     }
 }

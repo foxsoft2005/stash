@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Files Stash may hand to another app when you share an item: only its photos. -->
+<paths>
+    <files-path name="photos" path="photos/" />
+</paths>
