@@ -26,6 +26,7 @@ import io.github.foxsoft2005.stash.ui.edit.EditItemViewModel
 import io.github.foxsoft2005.stash.ui.home.BackupViewModel
 import io.github.foxsoft2005.stash.ui.home.HomeScreen
 import io.github.foxsoft2005.stash.ui.home.HomeViewModel
+import io.github.foxsoft2005.stash.ui.photo.PhotoScreen
 import io.github.foxsoft2005.stash.ui.places.PlacesScreen
 import io.github.foxsoft2005.stash.ui.places.PlacesViewModel
 import kotlinx.serialization.Serializable
@@ -36,6 +37,8 @@ import kotlinx.serialization.Serializable
 @Serializable data class CaptureRoute(val forPlacePhoto: Boolean = false) : NavKey
 @Serializable data object PlacesRoute : NavKey
 @Serializable data object CheckInRoute : NavKey
+/** A photo full screen; [description] is read out by TalkBack (item name or place). */
+@Serializable data class PhotoRoute(val path: String, val description: String? = null) : NavKey
 @Serializable data class EditRoute(val itemId: Long? = null, val photoPath: String? = null) : NavKey
 
 @Composable
@@ -90,7 +93,11 @@ fun StashNavigation(startWithCamera: Boolean) {
                 CheckInScreen(
                     viewModel = viewModel { CheckInViewModel(container.repository, container.appScope) },
                     onBack = { backStack.removeLastOrNull() },
+                    onOpenPhoto = { path, description -> backStack.add(PhotoRoute(path, description)) },
                 )
+            }
+            entry<PhotoRoute> { route ->
+                PhotoScreen(path = route.path, description = route.description, onClose = { backStack.removeLastOrNull() })
             }
             entry<PlacesRoute> {
                 PlacesScreen(
@@ -137,6 +144,7 @@ fun StashNavigation(startWithCamera: Boolean) {
                     placePhotoResult = placePhotoResult,
                     onPlacePhotoConsumed = { placePhotoResult = null },
                     onTakePlacePhoto = { backStack.add(CaptureRoute(forPlacePhoto = true)) },
+                    onOpenPhoto = { path, description -> backStack.add(PhotoRoute(path, description)) },
                     onDone = ::popToHome,
                     onBack = { backStack.removeLastOrNull() },
                 )

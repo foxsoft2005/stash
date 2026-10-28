@@ -1,5 +1,6 @@
 package io.github.foxsoft2005.stash.ui.checkin
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -59,7 +60,11 @@ import io.github.foxsoft2005.stash.ui.common.PlaceDialog
 /** "Still there?": one item at a time, answered with Still there / Moved… / Gone. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CheckInScreen(viewModel: CheckInViewModel, onBack: () -> Unit) {
+fun CheckInScreen(
+    viewModel: CheckInViewModel,
+    onBack: () -> Unit,
+    onOpenPhoto: (path: String, description: String?) -> Unit,
+) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbar = remember { SnackbarHostState() }
     val resources = LocalResources.current
@@ -146,13 +151,18 @@ fun CheckInScreen(viewModel: CheckInViewModel, onBack: () -> Unit) {
         when {
             state.isLoading -> Unit
             current == null -> Done(onBack, Modifier.padding(padding))
-            else -> Question(current, state.months, Modifier.padding(padding))
+            else -> Question(current, state.months, onOpenPhoto, Modifier.padding(padding))
         }
     }
 }
 
 @Composable
-private fun Question(item: Item, months: Int, modifier: Modifier = Modifier) {
+private fun Question(
+    item: Item,
+    months: Int,
+    onOpenPhoto: (path: String, description: String?) -> Unit,
+    modifier: Modifier = Modifier,
+) {
     Column(
         modifier
             .verticalScroll(rememberScrollState())
@@ -167,7 +177,8 @@ private fun Question(item: Item, months: Int, modifier: Modifier = Modifier) {
                 modifier = Modifier
                     .fillMaxWidth()
                     .heightIn(max = 280.dp)
-                    .clip(RoundedCornerShape(20.dp)),
+                    .clip(RoundedCornerShape(20.dp))
+                    .clickable(onClickLabel = stringResource(R.string.photo_open)) { onOpenPhoto(path, item.name) },
             )
         }
         Text(item.name, style = MaterialTheme.typography.titleLarge)
@@ -184,7 +195,8 @@ private fun Question(item: Item, months: Int, modifier: Modifier = Modifier) {
                 modifier = Modifier
                     .fillMaxWidth()
                     .heightIn(max = 200.dp)
-                    .clip(RoundedCornerShape(16.dp)),
+                    .clip(RoundedCornerShape(16.dp))
+                    .clickable(onClickLabel = stringResource(R.string.photo_open)) { onOpenPhoto(path, item.place) },
             )
         }
         Text(
