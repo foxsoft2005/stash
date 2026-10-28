@@ -179,6 +179,16 @@
     <string name="edit_lent_to_label">Кому одолжили (необязательно)</string>
     <string name="edit_returned">Вернули</string>
     <string name="edit_note_label">Заметка (необязательно)</string>
+    <string name="dup_title">«%1$s» уже есть</string>
+    <string name="dup_where">Место: «%1$s».</string>
+    <plurals name="dup_more">
+        <item quantity="one">С таким названием есть ещё %d вещь.</item>
+        <item quantity="few">С таким названием есть ещё %d вещи.</item>
+        <item quantity="many">С таким названием есть ещё %d вещей.</item>
+        <item quantity="other">С таким названием есть ещё %d вещи.</item>
+    </plurals>
+    <string name="dup_open_existing">Открыть</string>
+    <string name="dup_save_anyway">Всё равно сохранить</string>
     <string name="edit_delete_title">Удалить эту вещь?</string>
     <string name="edit_delete_body">Фото и место хранения будут удалены с этого телефона.</string>
 
