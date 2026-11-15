@@ -1,8 +1,8 @@
 [versions]
 # Toolchain (Sept 2026)
-agp = "9.5.0"
+agp = "9.5.1"
 kotlin = "2.4.21"
-ksp = "2.3.12"
+ksp = "2.3.13"
 
 # AndroidX
 coreKtx = "1.19.1"
