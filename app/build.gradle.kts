@@ -14,7 +14,13 @@ val releaseKeystore = providers.environmentVariable("STASH_KEYSTORE_PATH").orNul
 
 android {
     namespace = "io.github.foxsoft2005.stash"
-    compileSdk = 37
+    // Compile against Android 37.1 (a minor SDK release): Compose 1.13+ requires it.
+    // Only the APIs we can call change; targetSdk (runtime behaviour) and minSdk stay put.
+    compileSdk {
+        version = release(37) {
+            minorApiLevel = 1
+        }
+    }
 
     defaultConfig {
         applicationId = "io.github.foxsoft2005.stash"
